@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --foreground-rgb: 255, 255, 255;
+        --background-start-rgb: 0, 0, 0;
+        --background-end-rgb: 0, 0, 0;
+    }
+}
+
+body {
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+    cursor: pointer;
+}
+
+@layer utilities {
+    .text-balance {
+    }
+}
+::-webkit-scrollbar {
+    width: 20px;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #d6dee1;
+    border-radius: 20px;
+    border: 7px solid transparent;
+    background-clip: content-box;
+}
+::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+.department-body svg {
+    width: 14px !important;
+    height: 14px !important;
+}
+@keyframes wink {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+@keyframes dash {
+    0% {
+        stroke-dashoffset: 1200;
+        animation-timing-function: ease-in-out;
+    }
+
+    50% {
+        stroke-dashoffset: 0;
+        animation-timing-function: ease-in-out;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+        animation-timing-function: ease-in-out;
+    }
+}
+.boxshadow {
+    border-radius: 20px;
+    box-shadow:
+        0 14px 28px rgba(0, 0, 0, 0.25),
+        0 10px 10px rgba(0, 0, 0, 0.22);
+}
+.ant-btn-primary-custom:hover {
+    color: #fff;
+    border-color: #085379 !important;
+    background: #085379 !important;
+}
+.ant-btn-primary-custom:focus {
+    border-color: #1261a6 !important;
+    background: #1261a6 !important;
+}
+.ant-modal-close {
+    top: 15px !important;
+}

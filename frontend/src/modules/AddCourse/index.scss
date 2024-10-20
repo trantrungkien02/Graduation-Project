@@ -1,0 +1,24 @@
+.Toastify__toast-theme--light {
+    color: var(--toastify-text-color-error);
+    background: #e74c3c;
+}
+.Toastify__toast-theme--success {
+    color: var(--toastify-text-color-error);
+    background: green;
+}
+.Toastify__close-button--light {
+    color: #fff;
+    opacity: 1;
+}
+.Toastify__toast-icon > svg {
+    fill: white;
+}
+.Toastify__progress-bar--error {
+    background: hsla(0, 0%, 100%, 0.7);
+}
+.course-title {
+    margin: 16px auto 28px 20px;
+    color: #242424;
+    font-size: 1.4rem;
+    font-weight: 900;
+}

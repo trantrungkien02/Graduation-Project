@@ -1,0 +1,56 @@
+.edit-account {
+    width: 769px;
+    padding-top: 24px;
+    margin: auto auto 30px;
+
+    .title-edit-account {
+        display: flex;
+        justify-content: start;
+        color: #575757;
+        font-size: 24px;
+        font-weight: 500;
+        margin-bottom: 27px;
+    }
+
+    .form-bg-avatar {
+        background: linear-gradient(90deg, #8961ff, #71bbff);
+        height: 172px;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .form-edit-account {
+        background-color: hsla(0, 0%, 100%, 0.4);
+        padding-top: 120px;
+        padding-left: 40px;
+        padding-right: 40px;
+        border-left: 1px solid #dcdcdc;
+        border-right: 1px solid #dcdcdc;
+        border-bottom: 1px solid #dcdcdc;
+        border-radius: 0 0 10px 10px;
+
+        .ant-form-item {
+            margin-bottom: 16px;
+        }
+    }
+}
+.image-user {
+    border-radius: 50%;
+    width: 220px;
+}
+.form-item-custom .title {
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    margin-bottom: 5px;
+    color: #242424;
+}
+
+.input-formik-global-profile {
+    width: 687px;
+    height: 48px;
+    border: 1px solid #d7d7d7 !important;
+    border-radius: 6px !important;
+}
+.ant-select-selector {
+    border: none !important;
+}

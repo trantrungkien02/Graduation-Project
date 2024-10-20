@@ -1,0 +1,43 @@
+.course-title {
+    margin: 16px auto 28px 0;
+    color: #242424;
+    font-size: 1.4rem;
+    font-weight: 900;
+}
+.course-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.course-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #00000008;
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+
+    .ant-image {
+        position: static !important;
+    }
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 8px #0000001a;
+    }
+}
+
+.course-info {
+    margin-top: 10px;
+}
+
+.course-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}

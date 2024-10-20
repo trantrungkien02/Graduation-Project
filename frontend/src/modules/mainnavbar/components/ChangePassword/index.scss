@@ -1,0 +1,23 @@
+.ant-modal-content-ps {
+    border-radius: 10px;
+    background: #fff;
+    font-size: 14px;
+    line-height: 1.5715;
+    word-wrap: break-word;
+}
+.ant-modal-header {
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+}
+.input-formik-global,
+.input-number-formik-global {
+    width: 350px;
+    height: 48px;
+    background: #fff;
+    border-radius: 6px !important;
+}
+.ant-col-16 {
+    max-width: 100%;
+}

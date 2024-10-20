@@ -1,0 +1,79 @@
+.sidebar {
+    width: 96px;
+    // height: calc(100vh - 66px);
+    z-index: 990;
+    margin: 16px 0 0 16px;
+    .ant-menu {
+        background: none;
+    }
+    .ant-menu-item {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 92px;
+        height: 92px;
+        border-radius: 16px;
+        padding: 0 !important;
+        &:hover {
+            color: #000;
+            background-color: #f5f5f5;
+        }
+        &::after {
+            border: none !important;
+        }
+    }
+    .ant-menu-item-selected {
+        background-color: #e8ebed !important;
+    }
+}
+
+.sidebar-custom {
+    transition: all 0.4s ease !important;
+
+    .sidebar-detail__wrap {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        flex-direction: column;
+
+        .sidebar-detail {
+            overflow-y: auto;
+            overflow-x: hidden;
+            height: 100%;
+            font-size: 16px;
+
+            .menu-bottom .ant-menu-item span {
+                margin-left: 0;
+                display: inline-block;
+                width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                line-height: 1;
+            }
+            .ant-menu-inline {
+                border-right: none;
+            }
+        }
+    }
+}
+
+.w-ul {
+    width: 100% !important;
+}
+.sidebar-hide {
+    background: inherit;
+    width: 80px !important;
+}
+.ant-menu-item-selected {
+    color: #000 !important;
+}
+.text-theme {
+    color: #242424;
+}
+.ant-modal-add {
+    width: 796px !important;
+    .ant-modal-content {
+        box-shadow: none;
+        width: 100%;
+    }
+}

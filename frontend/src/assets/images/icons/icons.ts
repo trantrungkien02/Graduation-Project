@@ -1,0 +1,27 @@
+const icons = {
+    easy: require('./easy.svg'),
+    target: require('./target.svg'),
+    smartPhone: require('./smartphone.svg'),
+    ai: require('./artificial-intelligence.svg'),
+    cost: require('./reduce-cost.svg'),
+    appStore: require('./app-store.svg'),
+    playStore: require('./play-store.svg'),
+    iconFb: require('./iconFaceBook.svg'),
+    iconGg: require('./iconGoogle.svg'),
+    iconUser: require('./icons-user.svg'),
+    iconTele: require('./icons-telegram.svg'),
+    iconBriefcase: require('./icons-briefcase.svg'),
+    iconHome: require('./homeIcon.svg'),
+    iconCompanyTarget: require('./companyTarget.svg'),
+    iconMyTarget: require('./myTarget.svg'),
+    iconCaculator: require('./caculator.svg'),
+    iconLeft: require('./leftIcon.svg'),
+    iconRight: require('./rightIcon.svg'),
+    iconContact: require('./contact.svg'),
+    iconContent: require('./content.svg'),
+    iconContentManagement: require('./contentManagement.svg'),
+    iconTeam: require('./team.svg'),
+    iconPositionTeam: require('./positionTeam.svg'),
+};
+
+export { icons };

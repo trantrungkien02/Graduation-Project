@@ -1,0 +1,98 @@
+'use client';
+import { Menu } from 'antd';
+import React, { useState } from 'react';
+import type { MenuProps } from 'antd';
+import './index.scss';
+import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHome, faRoad, faBook, faPlus, faUserGroup } from '@fortawesome/free-solid-svg-icons';
+import { useSelector } from 'react-redux';
+
+type MenuItem = Required<MenuProps>['items'][number];
+
+function getItem(label: React.ReactNode, key: React.Key, icon?: React.ReactNode): MenuItem {
+    return {
+        key,
+        icon,
+        label,
+    } as MenuItem;
+}
+
+function Sidebar() {
+    const [selectedKey, setSelectedKey] = useState<string>('1');
+    const user = useSelector((state: any) => state.auth.login?.currentUser);
+
+    const items: MenuProps['items'] = [
+        getItem(
+            <Link href="/" className="flex flex-col items-center justify-center">
+                <FontAwesomeIcon icon={faHome} className="mb-[8px] text-[18px] text-[#000]" />
+                <p className="!text-[#000] text-xs">Trang chủ</p>
+            </Link>,
+            '1',
+        ),
+        getItem(
+            <Link
+                href="/"
+                className="flex flex-col items-center justify-center"
+                onClick={() => console.log(user?.role)}
+            >
+                <FontAwesomeIcon icon={faRoad} className="mb-[8px] text-[18px] text-[#000]" />
+                <p className="!text-[#000] text-xs">Lộ trình</p>
+            </Link>,
+            '2',
+        ),
+        getItem(
+            <Link href="/" className="flex flex-col items-center justify-center">
+                <FontAwesomeIcon icon={faBook} className="mb-[8px] text-[18px] text-[#000]" />
+                <p className="!text-[#000] text-xs">Bài viết</p>
+            </Link>,
+            '3',
+        ),
+    ];
+
+    // Conditionally add "Thêm khóa học" if user.role === 2
+    if (user?.role === '2') {
+        items.push(
+            getItem(
+                <Link href="/add-course" className="flex flex-col items-center justify-center">
+                    <FontAwesomeIcon icon={faPlus} className="mb-[8px] text-[18px] text-[#000]" />
+                    <p className="!text-[#000] text-xs">Thêm khóa học</p>
+                </Link>,
+                '4',
+            ),
+        );
+    }
+
+    if (user?.role === '3') {
+        items.push(
+            getItem(
+                <Link href="/user-list" className="flex flex-col items-center justify-center">
+                    <FontAwesomeIcon icon={faUserGroup} className="mb-[8px] text-[18px] text-[#000]" />
+                    <p className="!text-[#000] text-xs">Người dùng</p>
+                </Link>,
+                '5',
+            ),
+        );
+    }
+    const handleMenuClick: MenuProps['onClick'] = (e) => {
+        setSelectedKey(e.key);
+    };
+
+    return (
+        <div className={`sidebar sidebar-custom relative`}>
+            <div className="sidebar-detail__wrap">
+                <div className="sidebar-detail">
+                    <Menu
+                        onClick={handleMenuClick}
+                        style={{ width: 96 }}
+                        selectedKeys={[selectedKey]}
+                        mode="inline"
+                        items={items}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default Sidebar;

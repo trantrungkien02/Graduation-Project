@@ -1,0 +1,21 @@
+.ant-modal-custom {
+    width: 620px !important;
+    transform-origin: 1056px -4px;
+
+    .ant-modal-header {
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        padding: 10px 0;
+    }
+    .ant-modal-body {
+        padding: 24px !important;
+        .ant-text-area-global {
+            background: var(--mys-gray-00, #fff);
+            border: 1px solid #d7d7d7 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+            border-radius: 8px !important;
+            padding: 12px !important;
+        }
+    }
+}

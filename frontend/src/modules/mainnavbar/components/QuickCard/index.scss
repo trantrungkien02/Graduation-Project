@@ -1,0 +1,41 @@
+.ant-modal-content {
+    border-radius: 10px;
+}
+
+.form-item-custom .title {
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    margin-bottom: 5px;
+    color: #242424;
+}
+.form-custom-quickcard .ant-form-item {
+    margin-bottom: 12px;
+}
+.input-card {
+    width: 687px;
+    height: 48px;
+    border: 1px solid #d7d7d7 !important;
+    border-radius: 6px !important;
+    display: flex;
+    align-items: center;
+
+    .ant-select-selector {
+        height: 100% !important;
+        align-items: center;
+        .ant-select-selection-search-input {
+            height: 100% !important;
+        }
+    }
+}
+.date-picker-formik-global {
+    height: 48px;
+    width: 100%;
+    background: #fff !important;
+    border: 1px solid #d7d7d7 !important;
+    border-radius: 6px !important;
+}
+.ant-select-arrow .anticon svg {
+    width: 12px;
+    fill: #888;
+}
