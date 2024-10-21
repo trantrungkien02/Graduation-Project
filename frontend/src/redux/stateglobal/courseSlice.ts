@@ -5,6 +5,7 @@ const courseSlice = createSlice({
     initialState: {
         courses: {
             allCourses: null,
+            allCoursesById: [],
             isFetching: false,
             error: false,
         },
@@ -40,6 +41,17 @@ const courseSlice = createSlice({
             state.courses.isFetching = false;
             state.courses.error = true;
         },
+        getCoursesByIdStart: (state) => {
+            state.courses.isFetching = true;
+        },
+        getCoursesByIdSuccess: (state, action) => {
+            state.courses.isFetching = false;
+            state.courses.allCoursesById = action.payload;
+        },
+        getCoursesByIdFailed: (state) => {
+            state.courses.isFetching = false;
+            state.courses.error = true;
+        },
         deleteCoursestart: (state) => {
             state.courses.isFetching = true;
         },
@@ -52,6 +64,18 @@ const courseSlice = createSlice({
             state.courses.error = true;
             state.msg = action.payload;
         },
+        logOutCoursesSuccess: (state) => {
+            state.courses.isFetching = false;
+            state.courses.allCoursesById = [];
+            state.courses.error = false;
+        },
+        logOutCoursesFailed: (state) => {
+            state.courses.isFetching = false;
+            state.courses.error = true;
+        },
+        logOutCoursesStart: (state) => {
+            state.courses.isFetching = true;
+        },
     },
 });
 
@@ -62,9 +86,15 @@ export const {
     getCoursesStart,
     getCoursesSuccess,
     getCoursesFailed,
+    getCoursesByIdStart,
+    getCoursesByIdSuccess,
+    getCoursesByIdFailed,
     deleteCoursestart,
     deleteCoursesSuccess,
     deleteCoursesFailed,
+    logOutCoursesStart,
+    logOutCoursesSuccess,
+    logOutCoursesFailed,
 } = courseSlice.actions;
 
 export default courseSlice.reducer;

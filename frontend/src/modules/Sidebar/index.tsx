@@ -54,9 +54,9 @@ function Sidebar() {
     if (user?.role === '2') {
         items.push(
             getItem(
-                <Link href="/add-course" className="flex flex-col items-center justify-center">
+                <Link href="/manage-course" className="flex flex-col items-center justify-center">
                     <FontAwesomeIcon icon={faPlus} className="mb-[8px] text-[18px] text-[#000]" />
-                    <p className="!text-[#000] text-xs">Thêm khóa học</p>
+                    <p className="!text-[#000] text-xs">Ql khóa học</p>
                 </Link>,
                 '4',
             ),

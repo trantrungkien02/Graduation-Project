@@ -1,10 +1,10 @@
 import React from 'react';
-import AddCourseForm from '~/modules/AddCourse';
+import ManageCourse from '~/modules/ManageCourse';
 
 type Props = {};
 
 const page = (props: Props) => {
-    return <AddCourseForm />;
+    return <ManageCourse />;
 };
 
 export default page;

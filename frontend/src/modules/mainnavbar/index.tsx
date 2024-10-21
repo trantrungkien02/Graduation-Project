@@ -18,20 +18,14 @@ import Evaluate from './components/Evaluate';
 import ChangePassword from './components/ChangePassword';
 import MyQrCode from './components/MyQrCode';
 import { useRouter } from 'next/navigation';
-import { DownArrowIcon, PlusIcon } from '../Icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { HandleShowAddCompany } from '~/redux/stateglobal/openAddCompany';
-import QuickCard from './components/QuickCard';
-import { HandleDeleteCompany } from '~/redux/stateglobal/isHasCompany';
 import { createAxios } from '~/app/createInstance';
-import { loginSuccess, logOutSuccess } from '~/redux/stateglobal/authSlice';
-import { deleteUser, getAllUsers, logOut } from '~/redux/stateglobal/apiRequest';
+import { logOutSuccess } from '~/redux/stateglobal/authSlice';
+import { logOut } from '~/redux/stateglobal/apiRequest';
 
 function MainNavbar() {
     const dispatch = useDispatch();
     const [isExpanded, setIsExpanded] = useState(false);
-    const isModalOpen = useSelector((state: any) => state.modal.isShowModal);
-    const isHasCompany = useSelector((state: any) => state.hascompany.isHasCompany);
     const user = useSelector((state: any) => state.auth.login.currentUser);
     console.log(user);
     const router = useRouter();
@@ -61,14 +55,6 @@ function MainNavbar() {
         console.log(user);
     };
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            console.log(user.accessToken, user.refreshToken);
-        }, 10000); // Log lại sau mỗi 10 giây
-
-        // Cleanup interval khi component unmount
-        return () => clearInterval(interval);
-    }, [user]);
     const itemsNotification = (
         <div className="dropdown-notification">
             <div className="flex p-3 items-center justify-between border-solid border-b border-slate-200">
@@ -336,20 +322,6 @@ function MainNavbar() {
                 </Dropdown>
                 <ChangePassword />
                 <MyQrCode />
-                {isHasCompany && (
-                    <Link href="/" className="w-full hover:text-[#000]">
-                        <button
-                            type="button"
-                            className="w-full flex justify-between items-center font-normal leading-normal
-                text-base py-[9px] px-4 hover:bg-[#F6F6F6]  undefined"
-                            onClick={() => {
-                                dispatch(HandleDeleteCompany());
-                            }}
-                        >
-                            Rời khỏi công ty
-                        </button>
-                    </Link>
-                )}
                 <button
                     type="button"
                     className="w-full flex justify-between items-center font-normal leading-normal
@@ -370,38 +342,12 @@ function MainNavbar() {
         </div>
     );
 
-    const itemsCreateCompany = (
-        <div className="bg-white border border-[#DCDCDC] shadow-[#50d71e] rounded flex flex-col h-auto">
-            <Button className="flex justify-start items-center gap-x-3  hover:bg-blue-200 w-full pr-2 border-none h-auto p-0">
-                <Image alt="" src={images.avtEmployee} className="w-[40px]" />
-                Kien
-            </Button>
-            <Button
-                onClick={() => dispatch(HandleShowAddCompany())}
-                className="flex justify-center items-center min-w-[200px] py-[4px] px-[8px] leading-[20px] gap-2 text-blue-600 rounded border border-blue-600 m-[6px]"
-            >
-                <PlusIcon />
-                Tạo không gian làm việc
-            </Button>
-        </div>
-    );
     return (
         <div className="navbar flex items-center bg-white">
             <div className="flex items-center navbar-left">
                 <Link href="/">
                     <Image alt="" src={images.logo} />
                 </Link>
-                {isHasCompany && (
-                    <div className="flex items-center">
-                        <Dropdown overlay={itemsCreateCompany} trigger={['click']} overlayClassName="top55">
-                            <div className="flex items-center ml-5 mr-9 space-work">
-                                <p className="mr-2">Không gian làm việc</p>
-                                <DownArrowIcon />
-                            </div>
-                        </Dropdown>
-                        <QuickCard />
-                    </div>
-                )}
             </div>
             <div
                 className={`cursor-pointer expanding-search-global transition-all 'w-[500px]'`}
