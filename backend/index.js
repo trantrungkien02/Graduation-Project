@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const authRoute = require('./routes/auth');
 const userRoute = require('./routes/user');
 const courseRoute = require('./routes/course');
+const lessonRoute = require('./routes/lesson');
 dotenv.config();
 
 // mongoose.connect(process.env.MONGODB_URL, () => {
@@ -35,6 +36,7 @@ app.use(express.json());
 app.use('/v1/auth', authRoute);
 app.use('/v1/user', userRoute);
 app.use('/v1/course', courseRoute);
+app.use('/v1/lesson', lessonRoute);
 
 app.listen(8000, () => {
   console.log('Server is running');

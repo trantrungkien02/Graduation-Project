@@ -1,27 +1,33 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Button, Input, Select, Modal } from 'antd';
+import { Button, Input, Select, Modal, Form, message, Table } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { createAxios } from '~/app/createInstance';
 import { loginSuccess } from '~/redux/stateglobal/authSlice';
-import { deleteCourse, getAllCoursesByIdUser, searchCourses, updateCourse } from '~/redux/stateglobal/apiRequest';
+import {
+    deleteCourse,
+    getAllCoursesByIdUser,
+    searchCourses,
+    updateCourse,
+    getCourseById,
+} from '~/redux/stateglobal/apiRequest';
 
 const CourseList = () => {
     const user = useSelector((state: any) => state.auth.login?.currentUser);
-    const courseList = useSelector((state: any) => state.course.courses?.allCoursesById ?? []);
+    const courseList = useSelector((state: any) => state.course.courses?.allCoursesById ?? []); // Ensure it's an array
     const dispatch = useDispatch();
     const router = useRouter();
     let axiosJWT = createAxios(user, dispatch, loginSuccess);
 
-    // State to handle search query and edit state
     const [searchText, setSearchText] = useState('');
-    const [searchField, setSearchField] = useState('name'); // Trường tìm kiếm mặc định
+    const [searchField, setSearchField] = useState('name');
     const [editingCourse, setEditingCourse] = useState<any>(null); // Trạng thái đang edit
-
+    const [isModalVisible, setIsModalVisible] = useState(false); // Trạng thái modal
+    const [form] = Form.useForm(); // Khởi tạo form từ Ant Design
+    const [currentCourseList, setCurrentCourseList] = useState(courseList);
     const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
 
-    // Fetch course data
     useEffect(() => {
         if (!user) {
             router.push('/login');
@@ -31,7 +37,6 @@ const CourseList = () => {
         }
     }, []);
 
-    // Effect to handle search query changes
     useEffect(() => {
         if (debounceTimeout) {
             clearTimeout(debounceTimeout);
@@ -59,37 +64,102 @@ const CourseList = () => {
             onOk: async () => {
                 await deleteCourse(user?.accessToken, dispatch, id, axiosJWT);
                 if (user?.accessToken) {
-                    getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
+                    const updatedCourse = await getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
+                    setCurrentCourseList(updatedCourse);
                 }
             },
         });
     };
 
-    const handleEdit = (course: any) => {
-        setEditingCourse({ ...course });
+    const handleEdit = async (courseId: string) => {
+        const courseData = await getCourseById(user?.accessToken, courseId, dispatch, axiosJWT);
+        setEditingCourse(courseData); // Lưu dữ liệu khóa học đang chỉnh sửa
+        form.setFieldsValue(courseData); // Đặt giá trị form với dữ liệu từ API
+        setIsModalVisible(true); // Hiển thị modal
     };
 
     const handleSaveEdit = async () => {
-        if (editingCourse) {
-            await updateCourse(user?.accessToken, dispatch, editingCourse, axiosJWT);
-            setEditingCourse(null);
-            getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
+        try {
+            const values = form.getFieldsValue(); // Lấy giá trị từ form
+            await updateCourse(user?.accessToken, dispatch, { ...editingCourse, ...values }, axiosJWT);
+            message.success('Thông tin khóa học đã được cập nhật thành công!');
+            setIsModalVisible(false); // Ẩn modal
+            const updatedCourse = await getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
+            setCurrentCourseList(updatedCourse);
+        } catch (error) {
+            console.error('Cập nhật khóa học thất bại:', error);
         }
     };
 
     const handleCancelEdit = () => {
-        setEditingCourse(null);
+        setIsModalVisible(false);
+        getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
     };
 
-    const handleInputChange = (e: any) => {
-        const { name, value } = e.target;
-        setEditingCourse((prev: any) => ({ ...prev, [name]: value }));
-    };
+    // Ant Design Table columns configuration
+    const columns = [
+        {
+            title: 'STT',
+            dataIndex: 'index',
+            key: 'index',
+            render: (text: any, record: any, index: number) => index + 1, // Sequential numbering
+            width: '5%',
+        },
+        {
+            title: 'Tên',
+            dataIndex: 'name',
+            key: 'name',
+            width: '35%',
+        },
+        {
+            title: 'Video Id',
+            dataIndex: 'videoId',
+            key: 'videoId',
+            width: '25%',
+        },
+        {
+            title: 'Giá',
+            dataIndex: 'price',
+            key: 'price',
+            width: '15%',
+        },
+        {
+            title: 'Hành động',
+            key: 'actions',
+            render: (text: any, record: any) => (
+                <>
+                    <Button
+                        style={{
+                            backgroundColor: '#ffc107',
+                            borderColor: '#ffc107',
+                            borderRadius: '5px',
+                            color: 'white',
+                            marginLeft: '20px',
+                        }}
+                        onClick={() => handleEdit(record._id)}
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        onClick={() => handleDelete(record._id)}
+                        style={{
+                            backgroundColor: '#b80000',
+                            borderColor: '#b80000',
+                            borderRadius: '5px',
+                            color: 'white',
+                            marginLeft: '20px',
+                        }}
+                    >
+                        Delete
+                    </Button>
+                </>
+            ),
+            width: '20%',
+        },
+    ];
 
     return (
         <div className="home-container pl-[40px] pr-[50px]">
-            <div className="user-title">Danh sách khóa học</div>
-
             {/* Search Section */}
             <Input.Group compact style={{ marginBottom: '20px', borderRadius: '20px' }}>
                 <Select defaultValue="name" onChange={setSearchField} style={{ width: '10%', borderRadius: '20px' }}>
@@ -105,81 +175,41 @@ const CourseList = () => {
                 />
             </Input.Group>
 
-            {/* HTML Table */}
-            <table className="course-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                    <tr>
-                        <th style={{ border: '1px solid black', padding: '8px' }}>STT</th>
-                        <th style={{ border: '1px solid black', padding: '8px' }}>Tên</th>
-                        <th style={{ border: '1px solid black', padding: '8px' }}>Video Id</th>
-                        <th style={{ border: '1px solid black', padding: '8px' }}>Giá</th>
-                        <th style={{ border: '1px solid black', padding: '8px' }}>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {courseList.length > 0 ? (
-                        courseList.map((course: any, index: number) => (
-                            <tr key={course._id}>
-                                <td style={{ border: '1px solid black', padding: '8px' }}>{index + 1}</td>
-                                <td style={{ border: '1px solid black', padding: '8px' }}>
-                                    {editingCourse?._id === course._id ? (
-                                        <Input value={editingCourse.name} name="name" onChange={handleInputChange} />
-                                    ) : (
-                                        course.name
-                                    )}
-                                </td>
-                                <td style={{ border: '1px solid black', padding: '8px' }}>
-                                    {editingCourse?._id === course._id ? (
-                                        <Input
-                                            value={editingCourse.videoId}
-                                            name="videoId"
-                                            onChange={handleInputChange}
-                                        />
-                                    ) : (
-                                        course.videoId
-                                    )}
-                                </td>
-                                <td style={{ border: '1px solid black', padding: '8px' }}>
-                                    {editingCourse?._id === course._id ? (
-                                        <Input value={editingCourse.price} name="price" onChange={handleInputChange} />
-                                    ) : (
-                                        course.price
-                                    )}
-                                </td>
-                                <td style={{ border: '1px solid black', padding: '8px' }}>
-                                    {editingCourse?._id === course._id ? (
-                                        <>
-                                            <Button onClick={handleSaveEdit}>Save</Button>
-                                            <Button onClick={handleCancelEdit}>Cancel</Button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Button onClick={() => handleEdit(course)}>Edit</Button>
-                                            <Button
-                                                onClick={() => handleDelete(course._id)}
-                                                style={{
-                                                    backgroundColor: '#b80000',
-                                                    borderColor: '#b80000',
-                                                    borderRadius: '5px',
-                                                    color: 'white',
-                                                }}
-                                            >
-                                                Delete
-                                            </Button>
-                                        </>
-                                    )}
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan={5} style={{ textAlign: 'center', padding: '8px' }}>
-                                Không có khóa học nào
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+            {/* Ant Design Table */}
+            <Table
+                columns={columns}
+                dataSource={Array.isArray(currentCourseList) ? currentCourseList : []} // Ensure the data is an array
+                rowKey={(record) => record._id}
+                pagination={{ pageSize: 10 }}
+            />
+
+            {/* Modal for Editing */}
+            <Modal
+                title="Chỉnh sửa khóa học"
+                visible={isModalVisible}
+                onOk={handleSaveEdit}
+                onCancel={handleCancelEdit}
+                okText="Lưu"
+                cancelText="Hủy"
+            >
+                <Form form={form} layout="vertical">
+                    <Form.Item label="Tên khóa học" name="name">
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Mô tả khóa học" name="des">
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Ảnh đại diện khóa học" name="image">
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Video ID" name="videoId">
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Giá" name="price">
+                        <Input />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };

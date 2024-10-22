@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Table, Button, Input, Select, Modal } from 'antd'; // Thêm Select từ antd
+import { Table, Button, Input, Select, Modal } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { createAxios } from '~/app/createInstance';
@@ -15,13 +15,11 @@ const UserList = () => {
     const router = useRouter();
     let axiosJWT = createAxios(user, dispatch, loginSuccess);
 
-    // State to handle pagination and search query
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [searchText, setSearchText] = useState('');
-    const [searchField, setSearchField] = useState('username'); // Trường tìm kiếm mặc định
-    const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null); // State to handle debounce
+    const [searchField, setSearchField] = useState('username');
+    const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
 
-    // Fetch user data
     useEffect(() => {
         if (!user) {
             router.push('/login');
@@ -31,29 +29,22 @@ const UserList = () => {
         }
     }, []);
 
-    // Effect to handle search query changes
     useEffect(() => {
-        // Clear the previous timeout if it exists
         if (debounceTimeout) {
             clearTimeout(debounceTimeout);
         }
-
-        // Set a new timeout to debounce the search
         const timeout = setTimeout(async () => {
             if (searchText) {
-                // Gọi hàm tìm kiếm người dùng khi có từ khóa
                 await searchUsers(user?.accessToken, dispatch, axiosJWT, searchField, searchText);
             } else {
-                // Nếu không có từ khóa, gọi lại tất cả người dùng
                 await getAllUsers(user?.accessToken, dispatch, axiosJWT);
             }
-        }, 300); // Đặt thời gian debounce ở đây (300ms)
+        }, 300);
 
-        setDebounceTimeout(timeout); // Lưu timeout vào state
+        setDebounceTimeout(timeout);
 
-        // Clean up the timeout on unmount
         return () => clearTimeout(timeout);
-    }, [searchText, searchField]); // Cần thêm searchField vào dependencies
+    }, [searchText, searchField]);
 
     const handleDelete = (id: any) => {
         Modal.confirm({
@@ -62,11 +53,10 @@ const UserList = () => {
             okText: 'Có',
             cancelText: 'Không',
             style: {
-                top: '40%', // Đưa modal vào giữa màn hình theo chiều dọc
+                top: '40%',
             },
             onOk: async () => {
                 await deleteUser(user?.accessToken, dispatch, id, axiosJWT);
-                // Reload the user list after deletion
                 if (user?.accessToken) {
                     getAllUsers(user?.accessToken, dispatch, axiosJWT);
                 }
@@ -75,7 +65,7 @@ const UserList = () => {
     };
 
     const handleTableChange = (pagination: any) => {
-        setPagination(pagination); // Update pagination state when page is changed
+        setPagination(pagination);
     };
 
     const columns = [
@@ -83,7 +73,7 @@ const UserList = () => {
             title: 'STT',
             dataIndex: 'key',
             render: (text: any, record: any, index: number) =>
-                (pagination.current - 1) * pagination.pageSize + index + 1, // Calculate row number across pages
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Tên',
@@ -105,10 +95,10 @@ const UserList = () => {
                     <Button
                         onClick={() => handleDelete(record._id)}
                         style={{
-                            backgroundColor: '#b80000', // Màu nền đỏ
-                            borderColor: '#b80000', // Màu viền đỏ
-                            borderRadius: '5px', // Bo góc
-                            color: 'white', // Màu chữ trắng
+                            backgroundColor: '#b80000',
+                            borderColor: '#b80000',
+                            borderRadius: '5px',
+                            color: 'white',
                         }}
                     >
                         Delete
@@ -135,7 +125,7 @@ const UserList = () => {
                 </Select>
                 <Input.Search
                     placeholder="Tìm kiếm"
-                    onChange={(e) => setSearchText(e.target.value)} // Cập nhật searchText mỗi khi gõ
+                    onChange={(e) => setSearchText(e.target.value)}
                     enterButton
                     style={{ width: '90%', borderRadius: '20px' }}
                 />
@@ -147,11 +137,11 @@ const UserList = () => {
                 rowKey="_id"
                 pagination={{
                     ...pagination,
-                    pageSizeOptions: ['10', '15', '20'], // Tùy chọn hiển thị số hàng trên mỗi trang
-                    showSizeChanger: true, // Cho phép thay đổi số hàng trên mỗi trang
+                    pageSizeOptions: ['10', '15', '20'],
+                    showSizeChanger: true,
                 }}
                 onChange={handleTableChange}
-                scroll={{ y: pagination.pageSize > 5 ? 550 : undefined }} // Cuộn nếu có hơn 10 hàng
+                scroll={{ y: pagination.pageSize > 5 ? 550 : undefined }}
             />
         </div>
     );

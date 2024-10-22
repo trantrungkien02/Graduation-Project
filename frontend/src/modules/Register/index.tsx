@@ -17,7 +17,7 @@ interface FormData {
     email: string;
     password: string;
     role: string;
-    comparePassword?: string; // Đặt tùy chọn vì sẽ loại bỏ sau
+    comparePassword?: string;
 }
 function RegisterForm() {
     const [form] = Form.useForm();
@@ -35,46 +35,6 @@ function RegisterForm() {
         console.log('Form Values:', values);
 
         try {
-            // const response = await fetch('https://api.tinamys.com/api/v1/auth/register', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify(values),
-            // });
-            // console.log(values);
-            // if (response.ok) {
-            //     const result = await response.json();
-            //     if (result.success && result.errorCode == '000000') {
-            //         router.push('/login');
-            //     } else if (result.errorCode == 'USER.USERNAME_EXISTED') {
-            //         toast.error('Tên tài khoản đã tồn tại!', {
-            //             position: 'top-right',
-            //             autoClose: 5000,
-            //             hideProgressBar: false,
-            //             closeOnClick: true,
-            //             pauseOnHover: true,
-            //             draggable: true,
-            //             progress: undefined,
-            //             theme: 'light',
-            //             transition: Bounce,
-            //         });
-            //     } else {
-            //         toast.error('Email đã tồn tại!', {
-            //             position: 'top-right',
-            //             autoClose: 5000,
-            //             hideProgressBar: false,
-            //             closeOnClick: true,
-            //             pauseOnHover: true,
-            //             draggable: true,
-            //             progress: undefined,
-            //             theme: 'light',
-            //             transition: Bounce,
-            //         });
-            //     }
-            // } else {
-            //     console.error('Error:', response.statusText);
-            // }
             const { comparePassword, ...formData } = values;
             console.log(formData);
             const res = await registerUser(formData, dispatch);
@@ -141,15 +101,6 @@ function RegisterForm() {
             <div className="header-wrapper">
                 <div className="login-text mb-8">ĐĂNG KÝ</div>
             </div>
-            {/* <div className="form-item-custom">
-                <div className="title">
-                    Họ và tên
-                    <b className="text-red-600">*</b>
-                </div>
-                <Form.Item name="fullName" rules={[{ required: true, message: 'Họ và tên không được để trống' }]}>
-                    <Input name="fullName" id="fullName" className="input-formik-global" placeholder="Họ và tên" />
-                </Form.Item>
-            </div> */}
 
             <div className="form-item-custom">
                 <div className="title">
@@ -264,28 +215,6 @@ function RegisterForm() {
             >
                 ĐĂNG KÝ
             </Button>
-
-            {/* <div className="ant-row flex justify-center mt-4">
-                <div className="text-res">Bạn đã có tài khoản?</div>
-                <div role="button" className="text-router-register" onClick={switchToLogin}>
-                    Đăng nhập ngay
-                </div>
-            </div> */}
-            {/* <button type="button" className="btn-back-page btn-position" onClick={switchToLogin}>
-                <span role="img" aria-label="arrow-left" className="anticon anticon-arrow-left">
-                    <svg
-                        viewBox="64 64 896 896"
-                        focusable="false"
-                        data-icon="arrow-left"
-                        width="1em"
-                        height="1em"
-                        fill="currentColor"
-                        aria-hidden="true"
-                    >
-                        <path d="M872 474H286.9l350.2-304c5.6-4.9 2.2-14-5.2-14h-88.5c-3.9 0-7.6 1.4-10.5 3.9L155 487.8a31.96 31.96 0 000 48.3L535.1 866c1.5 1.3 3.3 2 5.2 2h91.5c7.4 0 10.8-9.2 5.2-14L286.9 550H872c4.4 0 8-3.6 8-8v-60c0-4.4-3.6-8-8-8z"></path>
-                    </svg>
-                </span>
-            </button> */}
         </Form>
     );
 }

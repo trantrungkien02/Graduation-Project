@@ -57,6 +57,7 @@ const courseSlice = createSlice({
         },
         deleteCoursesSuccess: (state, action) => {
             state.courses.isFetching = false;
+            state.courses.allCoursesById = action.payload;
             state.msg = action.payload;
         },
         deleteCoursesFailed: (state, action) => {

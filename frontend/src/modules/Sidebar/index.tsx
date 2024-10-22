@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 import type { MenuProps } from 'antd';
 import './index.scss';
 import Link from 'next/link';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faRoad, faBook, faPlus, faUserGroup } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from 'react-redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHome, faRoad, faBook, faPlus, faUserGroup, faGear } from '@fortawesome/free-solid-svg-icons';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -50,7 +50,6 @@ function Sidebar() {
         ),
     ];
 
-    // Conditionally add "Thêm khóa học" if user.role === 2
     if (user?.role === '2') {
         items.push(
             getItem(
@@ -59,6 +58,13 @@ function Sidebar() {
                     <p className="!text-[#000] text-xs">Ql khóa học</p>
                 </Link>,
                 '4',
+            ),
+            getItem(
+                <Link href="/manage-lesson" className="flex flex-col items-center justify-center">
+                    <FontAwesomeIcon icon={faGear} className="mb-[8px] text-[18px] text-[#000]" />
+                    <p className="!text-[#000] text-xs">Bài giảng</p>
+                </Link>,
+                '5',
             ),
         );
     }
@@ -70,7 +76,7 @@ function Sidebar() {
                     <FontAwesomeIcon icon={faUserGroup} className="mb-[8px] text-[18px] text-[#000]" />
                     <p className="!text-[#000] text-xs">Người dùng</p>
                 </Link>,
-                '5',
+                '6',
             ),
         );
     }

@@ -88,7 +88,7 @@ function ManageCourse() {
                 transition={Bounce}
                 style={{ zIndex: 9999 }} // Tăng z-index lên
             />
-            <h2 className="course-title">Quản lý khóa Học</h2>
+            <h2 className="manage-title">Quản lý khóa Học</h2>
             <Tabs defaultActiveKey="1" className="pl-5 target-nav">
                 <Tabs.TabPane tab={<div>Thêm khóa học</div>} key="1">
                     <Form
