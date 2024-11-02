@@ -18,7 +18,7 @@ const ProfilePage = (props: Props) => {
         try {
             // Gọi hàm updateUser và truyền dữ liệu form
             const res = await updateUser(values, dispatch);
-            console.log(res);
+            console.log(values);
             // Nếu cập nhật thành công, cập nhật lại form với dữ liệu mới
 
             // Hiển thị thông báo thành công

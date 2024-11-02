@@ -13,6 +13,8 @@ router.get('/detail/:slug', coursesController.getCourseBySlug);
 
 router.get('/search', coursesController.searchCourses);
 
+router.post('/:id/register', coursesController.incrementRegistration);
+
 router.put('/update/:id', coursesController.updateCourse);
 
 router.delete('/delete/:id', coursesController.deleteCourse);

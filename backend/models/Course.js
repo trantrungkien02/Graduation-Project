@@ -16,6 +16,7 @@ const Course = new Schema(
     level: { type: String },
     price: { type: String },
     slug: { type: String, slug: 'name', unique: true },
+    registrations: { type: Number, default: 0 },
   },
   {
     _id: false,

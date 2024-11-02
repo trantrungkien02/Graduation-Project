@@ -3,15 +3,16 @@ import { Button, Form, Input } from 'antd';
 import React, { FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bounce, ToastContainer, toast } from 'react-toastify';
-import Cookies from 'js-cookie';
+import { GoogleLogin } from '@react-oauth/google';
 import 'react-toastify/dist/ReactToastify.css';
+import { signIn } from 'next-auth/react';
 import Image from 'next/image';
 import './index.scss';
 import { icons } from '~/assets/images/icons/icons';
 import RegisterForm from '../Register';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
-import { loginUser } from '~/redux/stateglobal/apiRequest';
+import { loginGoogle, loginUser } from '~/redux/stateglobal/apiRequest';
 
 interface FormProps {
     switchToRegister?: () => void;
@@ -28,35 +29,6 @@ function LoginForm() {
         console.log('Form Values:', values);
 
         try {
-            // const response = await fetch('https://api.tinamys.com/api/v1/auth/login', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify(values),
-            // });
-
-            // if (response.ok) {
-            //     const result = await response.json();
-            //     if (result.success) {
-            //         router.push('/');
-            //         localStorage.setItem('persist:state', JSON.stringify({ user: result.data }));
-            //     } else {
-            //         toast.error('Email hoặc tên tài khoản không đúng!', {
-            //             position: 'top-right',
-            //             autoClose: 5000,
-            //             hideProgressBar: false,
-            //             closeOnClick: true,
-            //             pauseOnHover: true,
-            //             draggable: true,
-            //             progress: undefined,
-            //             theme: 'light',
-            //             transition: Bounce,
-            //         });
-            //     }
-            // } else {
-            //     console.error('Error:', response.statusText);
-            // }
             const res = await loginUser(values, dispatch, router);
             if (res === 'Incorrect username or email') {
                 toast.error('Email hoặc tên tài khoản không đúng!', {
@@ -104,7 +76,25 @@ function LoginForm() {
     const onFinishFailed = (errorInfo: any) => {
         console.log('Failed:', errorInfo);
     };
-
+    const handleSuccess = async (credentialResponse: any) => {
+        try {
+            const result = await loginGoogle(credentialResponse.credential, dispatch, router);
+            if (result === 'user invalid!') {
+                toast.error('Người dùng đã tồn tại!', {
+                    position: 'top-right',
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: 'light',
+                    transition: Bounce,
+                });
+            }
+        } catch (error) {}
+    };
+    const handleError = () => {};
     return (
         <div>
             <Form
@@ -166,16 +156,16 @@ function LoginForm() {
                 <Button
                     type="primary"
                     htmlType="submit"
-                    className="ant-btn-primary-custom p-2 inline-flex items-center justify-center rounded-md transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white bg-[#1261a6] border-none font-semibold text-base h-11 w-full mb-1.2"
+                    className="ant-btn-primary-custom p-2 inline-flex items-center justify-center rounded-md transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white bg-[#1261a6] border-none font-semibold text-base h-11 w-full mb-4"
                 >
                     Đăng nhập
                 </Button>
 
-                <Button type="primary" className="btn-login-social">
+                {/* <Button type="primary" className="btn-login-social" onClick={handleGoogleLogin}>
                     <Image alt="" src={icons.iconGg} />
                     <div className="ml-2">Đăng nhập với Google</div>
-                </Button>
-
+                </Button> */}
+                <GoogleLogin onSuccess={handleSuccess} onError={handleError} width={350} />
                 <Button type="primary" className="btn-login-social">
                     <Image alt="" src={icons.iconFb} />
                     <div className="ml-2">Đăng nhập với Facebook</div>

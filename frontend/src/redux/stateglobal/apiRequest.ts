@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Dispatch } from 'redux';
 import {
+    loginCourseForUserSuccess,
     loginFailed,
     loginStart,
     loginSuccess,
@@ -53,6 +54,8 @@ import {
     registerLessonStart,
     registerLessonSuccess,
 } from './lessonSlice';
+import NextAuth from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
 
 interface User {
     username: string;
@@ -135,7 +138,7 @@ export const searchUsers = async (
 export const updateUser = async (user: any, dispatch: Dispatch) => {
     dispatch(updateUserStart());
     try {
-        const res = await axios.put('http://localhost:8000/v1/user/update', user);
+        const res = await axios.put('http://localhost:8000/v1/user/update-user', user);
         dispatch(updateUserSuccess(res.data));
 
         return res.data;
@@ -180,6 +183,7 @@ export const logOut = async (dispatch: Dispatch, id: string, router: any, access
         dispatch(logOutFailed());
         dispatch(logOutCoursesFailed());
         dispatch(logOutLessonFailed());
+        console.log(err);
     }
 };
 
@@ -276,6 +280,25 @@ export const updateCourse = async (accessToken: string, dispatch: Dispatch, cour
     }
 };
 
+export const registerCourseForUser = async (
+    accessToken: string,
+    userId: string,
+    dispatch: Dispatch,
+    courseId: any,
+    axiosJWT: AxiosJWT,
+) => {
+    try {
+        await axiosJWT.post(`http://localhost:8000/v1/course/${courseId}/register`, { userId });
+        const user = await axiosJWT.get(`http://localhost:8000/v1/user/getuserbyid/${userId}`, {
+            headers: { token: `Bearer ${accessToken}` },
+        });
+        dispatch(loginCourseForUserSuccess(user.data));
+    } catch (err) {
+        console.log(err);
+        dispatch(updateUserFailed());
+    }
+};
+
 export const deleteCourse = async (accessToken: string, dispatch: Dispatch, id: string, axiosJWT: AxiosJWT) => {
     dispatch(deleteCoursestart());
     try {
@@ -316,9 +339,13 @@ export const getLessonBycourseId = async (
         });
         dispatch(getLessonsByIdSuccess(res.data));
         return res.data;
-    } catch (err) {
-        dispatch(getLessonsByIdFailed());
-        return [];
+    } catch (err: any) {
+        if (err.response) {
+            console.log(err.response.data);
+            return err.response.data;
+        } else {
+            console.log(err);
+        }
     }
 };
 
@@ -377,5 +404,23 @@ export const deleteLesson = async (accessToken: string, dispatch: Dispatch, id: 
         dispatch(deleteLessonSuccess(res.data));
     } catch (err: any) {
         dispatch(deleteLessonFailed(err.response?.data || 'Error occurred while deleting the lesson'));
+    }
+};
+
+export const loginGoogle = async (token: any, dispatch: Dispatch, router: any) => {
+    dispatch(loginStart());
+    try {
+        const res = await axios.post('http://localhost:8000/v1/auth/login-google', { token });
+        console.log(res);
+        dispatch(loginSuccess(res.data));
+        router.push('/');
+    } catch (err: any) {
+        if (err.response) {
+            console.log(err.response.data);
+            return err.response.data;
+        } else {
+            console.log(err);
+        }
+        dispatch(loginFailed());
     }
 };

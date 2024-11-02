@@ -271,7 +271,7 @@ function MainNavbar() {
                     className="ant-image-img mt-1 absolute top-4 left-3"
                     style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '100%' }}
                 />
-                <div className="flex flex-col justify-center items-start ml-2.5 h-[48px]">
+                <div className="flex flex-col justify-center items-start ml-12 h-[48px]">
                     <span className="font-normal text-lg leading-5">{user?.username}</span>
                     <span className="font-light text-sm leading-5">{user?.email}</span>
                 </div>

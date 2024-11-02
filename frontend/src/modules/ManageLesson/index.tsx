@@ -106,8 +106,12 @@ const LessonList = () => {
         }
         try {
             const lessonData = { ...values, courseId: selectedCourseId };
-            await registerLesson(lessonData, dispatch);
-            message.success('Bài giảng đã được thêm thành công!');
+            const resultLesson = await registerLesson(lessonData, dispatch);
+            if (resultLesson === 'Lesson name and courseId combination already exists') {
+                message.success('Bài giảng đã tồn tại!');
+            } else {
+                message.success('Bài giảng đã được thêm thành công!');
+            }
             setIsAddModalVisible(false);
             const updatedLessons = await getLessonBycourseId(user?.accessToken, selectedCourseId, dispatch, axiosJWT);
             setCurrentLessonList(updatedLessons); // Update current lessons

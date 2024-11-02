@@ -1,9 +1,19 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
+const { OAuth2Client } = require('google-auth-library');
+const client_id = process.env.GOOGLE_CLIENT_ID;
+const client = new OAuth2Client(client_id);
 let refreshTokens = [];
 
+async function verifyToken(token) {
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: client_id,
+  });
+  const payload = ticket.getPayload();
+  return payload;
+}
 const authController = {
   //REGISTER
   registerUser: async (req, res) => {
@@ -105,7 +115,68 @@ const authController = {
       res.status(500).json(err);
     }
   },
+  loginGoogle: async (req, res) => {
+    try {
+      const { token } = req.body;
+      const payload = await verifyToken(token);
+      console.log(token, payload);
+      const { email, name, sub } = payload;
 
+      // Check if user exists by username or email
+      const existingUser = await User.findOne({
+        $or: [{ username: name }, { email: email }],
+      });
+
+      if (existingUser) {
+        // Tạo access token
+        const accessToken = authController.generateAccessToken(existingUser);
+        // Tạo refresh token
+        const refreshToken = authController.generateRefreshToken(existingUser);
+        refreshTokens.push(refreshToken);
+        // Lưu refresh token trong cookie
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: false,
+          path: '/',
+        });
+        console.log('Cookie set:', res.cookies);
+        // Loại bỏ mật khẩu trước khi trả về
+        const { password, ...others } = existingUser._doc;
+        return res.status(200).json({ ...others, accessToken });
+      }
+
+      // If user does not exist, create a new user
+      const newUser = new User({
+        username: name,
+        email: email,
+        password: sub, // Typically, the password would be hashed. Using `sub` as a placeholder here.
+        role: '1',
+      });
+
+      // Save new user to the database
+      const user = await newUser.save();
+      if (user) {
+        // Tạo access token
+        const accessToken = authController.generateAccessToken(user);
+        // Tạo refresh token
+        const refreshToken = authController.generateRefreshToken(user);
+        refreshTokens.push(refreshToken);
+        // Lưu refresh token trong cookie
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: false,
+          path: '/',
+        });
+        console.log('Cookie set:', res.cookies);
+        // Loại bỏ mật khẩu trước khi trả về
+        const { password, ...others } = user._doc;
+        return res.status(200).json({ ...others, accessToken });
+      }
+    } catch (error) {
+      res.status(500).json(error);
+      console.log(error);
+    }
+  },
   requestRefreshToken: async (req, res) => {
     //Take refresh token from user
     const refreshToken = req.cookies.refreshToken;

@@ -1,5 +1,6 @@
 // const { mongooseToOject } = require('../../utils/mongoose');
 const Course = require('../models/Course');
+const User = require('../models/User');
 const courseController = {
   // DANG KHOA HOC
   registerCourse: async (req, res) => {
@@ -128,6 +129,32 @@ const courseController = {
       return res.status(200).json(updatedCourse);
     } catch (err) {
       return res.status(500).json(err);
+    }
+  },
+  incrementRegistration: async (req, res) => {
+    const courseId = req.params.id;
+    console.log(courseId);
+    const { userId } = req.body; // Nhận userId từ yêu cầu để cập nhật vào User
+
+    try {
+      // Tăng số lượng đăng ký của khóa học lên 1
+      const course = await Course.findByIdAndUpdate(courseId, { $inc: { registrations: 1 } }, { new: true });
+
+      if (course) {
+        // Thêm khóa học vào danh sách đã đăng ký của user
+        await User.findByIdAndUpdate(userId, {
+          $push: { registeredCourses: { courseId: courseId, completedLessons: 0 } },
+        });
+
+        res.status(200).json({
+          message: 'Đăng ký khóa học thành công!',
+          course,
+        });
+      } else {
+        res.status(404).json({ message: 'Không tìm thấy khóa học' });
+      }
+    } catch (error) {
+      res.status(500).json({ message: 'Lỗi khi đăng ký khóa học', error });
     }
   },
   deleteCourse: async (req, res) => {

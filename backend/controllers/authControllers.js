@@ -1,8 +1,20 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-
+const { OAuth2Client } = require('google-auth-library');
+const client_id = process.env.GOOGLE_CLIENT_ID;
+const client = new OAuth2Client(client_id);
 let refreshTokens = [];
+
+async function verifyToken(token) {
+  const ticket = await client.verfyIdToken({
+    idToken: token,
+    audience: client_id,
+  });
+  const payload = ticket.getPayLoad();
+  return payload;
+}
+
 const authController = {
   //REGISTER
   registerUser: async (req, res) => {
@@ -76,7 +88,28 @@ const authController = {
       res.status(500).json(err);
     }
   },
+  loginGoogle: async (req, res) => {
+    try {
+      const { token } = req.body;
+      const payload = await verifyToken(token);
+      const { email, name, sub } = payload;
+      const user = await User.findOne({ username: name });
 
+      if (!user) {
+        const newUser = await new User({
+          username: name,
+          email: email,
+          password: sub,
+        });
+
+        //Save to DB
+        const userGg = await newUser.save();
+        res.status(200).json(userGg);
+      }
+    } catch (error) {
+      res.status(500).json(err);
+    }
+  },
   requestRefreshToken: async (req, res) => {
     //Take refresh token from user
     const refreshToken = req.cookies.refreshToken;

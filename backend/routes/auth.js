@@ -10,6 +10,8 @@ router.post('/register', authController.registerUser);
 router.post('/refresh', authController.requestRefreshToken);
 //LOG IN
 router.post('/login', authController.loginUser);
+//LOG IN GOOGLE
+router.post('/login-google', authController.loginGoogle);
 //LOG OUT
 router.post('/logout', authController.userLogout);
 

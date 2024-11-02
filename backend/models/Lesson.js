@@ -13,7 +13,10 @@ const lessonSchema = new mongoose.Schema(
     videoId: {
       type: String,
       required: true,
-      unique: true,
+    },
+    duration: {
+      type: String,
+      required: false,
     },
     discuss: {
       type: String,

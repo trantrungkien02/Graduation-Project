@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       minlength: 6,
-      maxlength: 20,
       unique: true,
     },
     email: {
@@ -25,6 +24,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    registeredCourses: [
+      {
+        courseId: { type: String, required: true },
+        lessonsCompleted: { type: Number, default: 0 },
+      },
+    ],
   },
   { timestamps: true },
 );

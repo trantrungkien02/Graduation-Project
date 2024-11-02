@@ -10,6 +10,21 @@ const userController = {
       res.status(500).json(err);
     }
   },
+  getUserById: async (req, res) => {
+    try {
+      const userId = req.params.id; // Lấy userId từ tham số URL
+      const user = await User.findById(userId); // Tìm người dùng theo userId
+
+      if (!user) {
+        return res.status(404).json({ message: 'Người dùng không tồn tại' }); // Nếu không tìm thấy người dùng
+      }
+
+      res.status(200).json(user); // Trả về thông tin người dùng
+    } catch (err) {
+      res.status(500).json(err); // Xử lý lỗi
+    }
+  },
+
   searchUsers: async (req, res) => {
     const { field, q } = req.query;
 

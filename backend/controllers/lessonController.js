@@ -1,4 +1,45 @@
 const Lesson = require('../models/Lesson');
+async function getVideoDuration(videoId) {
+  const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    // Kiểm tra xem data.items có tồn tại và là một mảng
+    if (data && Array.isArray(data.items)) {
+      if (data.items.length > 0) {
+        const duration = data.items[0].contentDetails.duration;
+        console.log(`Thời lượng video: ${duration}`);
+        return duration;
+      } else {
+        console.log('Không tìm thấy video với ID đã cho.');
+        return null; // Hoặc xử lý theo cách khác nếu không tìm thấy video
+      }
+    } else {
+      console.log('Phản hồi không hợp lệ từ API:', data);
+      console.log(process.env.YOUTUBE_API_KEY);
+      return null; // Hoặc xử lý lỗi
+    }
+  } catch (error) {
+    console.error('Lỗi khi lấy thông tin video:', error);
+    return null; // Hoặc xử lý lỗi
+  }
+}
+
+function convertDuration(duration) {
+  const matches = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+
+  const hours = matches[1] ? matches[1].padStart(2, '0') : '00';
+  const minutes = matches[2] ? matches[2].padStart(2, '0') : '00';
+  const seconds = matches[3] ? matches[3].padStart(2, '0') : '00';
+
+  if (hours === '00') {
+    return `${minutes}:${seconds}`; // Đảm bảo phút luôn là 2 chữ số
+  } else {
+    return `${hours}:${minutes}:${seconds}`;
+  }
+}
+
 const lessonController = {
   registerLesson: async (req, res) => {
     try {
@@ -12,12 +53,16 @@ const lessonController = {
         return res.status(400).json('Lesson name and courseId combination already exists');
       }
 
+      // Get video duration
+      const duration = await getVideoDuration(req.body.videoId);
+
       // Create new lesson
       const newLesson = new Lesson({
         name: req.body.name,
         courseId: req.body.courseId,
         videoId: req.body.videoId,
         discuss: req.body.discuss,
+        duration: convertDuration(duration), // Lưu thời lượng video
       });
 
       // Save lesson to DB
