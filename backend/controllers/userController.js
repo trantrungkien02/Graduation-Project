@@ -59,6 +59,7 @@ const userController = {
           return res.status(400).json('Username already in use');
         }
         user.username = req.body.username;
+        user.registeredCourses = req.body.registeredCourses;
       }
 
       // Kiểm tra mật khẩu cũ nếu nó được gửi lên

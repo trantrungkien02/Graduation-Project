@@ -27,16 +27,20 @@ async function getVideoDuration(videoId) {
 }
 
 function convertDuration(duration) {
-  const matches = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (duration != null) {
+    const matches = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
 
-  const hours = matches[1] ? matches[1].padStart(2, '0') : '00';
-  const minutes = matches[2] ? matches[2].padStart(2, '0') : '00';
-  const seconds = matches[3] ? matches[3].padStart(2, '0') : '00';
+    const hours = matches[1] ? matches[1].padStart(2, '0') : '00';
+    const minutes = matches[2] ? matches[2].padStart(2, '0') : '00';
+    const seconds = matches[3] ? matches[3].padStart(2, '0') : '00';
 
-  if (hours === '00') {
-    return `${minutes}:${seconds}`; // Đảm bảo phút luôn là 2 chữ số
+    if (hours === '00') {
+      return `${minutes}:${seconds}`; // Đảm bảo phút luôn là 2 chữ số
+    } else {
+      return `${hours}:${minutes}:${seconds}`;
+    }
   } else {
-    return `${hours}:${minutes}:${seconds}`;
+    return null;
   }
 }
 

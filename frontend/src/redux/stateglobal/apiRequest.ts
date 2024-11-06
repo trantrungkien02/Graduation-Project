@@ -139,7 +139,7 @@ export const updateUser = async (user: any, dispatch: Dispatch) => {
     dispatch(updateUserStart());
     try {
         const res = await axios.put('http://localhost:8000/v1/user/update-user', user);
-        dispatch(updateUserSuccess(res.data));
+        dispatch(loginCourseForUserSuccess(res.data));
 
         return res.data;
     } catch (err: any) {
