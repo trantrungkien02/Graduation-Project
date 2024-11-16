@@ -125,9 +125,15 @@ const lessonController = {
   updateLesson: async (req, res) => {
     const { id } = req.params; // Lấy id từ params
     const updatedData = req.body; // Lấy dữ liệu cập nhật từ body
-    console.log(id, updatedData);
 
     try {
+      // Kiểm tra nếu có videoId mới trong dữ liệu cập nhật
+      if (updatedData.videoId) {
+        // Lấy lại thời lượng video
+        const newDuration = await getVideoDuration(updatedData.videoId);
+        updatedData.duration = convertDuration(newDuration); // Cập nhật lại duration
+      }
+
       // Tìm bài học theo id và cập nhật thông tin
       const updatedLesson = await Lesson.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
 
@@ -139,6 +145,7 @@ const lessonController = {
       // Trả về bài học đã cập nhật
       return res.status(200).json(updatedLesson);
     } catch (err) {
+      console.log(err);
       return res.status(500).json(err);
     }
   },

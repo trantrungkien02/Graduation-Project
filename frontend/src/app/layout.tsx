@@ -7,6 +7,8 @@ import './globals.css';
 import { StoreProvider } from '~/redux/store/storeProvider';
 import { config } from '@fortawesome/fontawesome-svg-core';
 import '@fortawesome/fontawesome-svg-core/styles.css';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 config.autoAddCss = true;
 dotenv.config();
 export const metadata: Metadata = {

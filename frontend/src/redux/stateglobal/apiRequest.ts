@@ -284,11 +284,11 @@ export const registerCourseForUser = async (
     accessToken: string,
     userId: string,
     dispatch: Dispatch,
-    courseId: any,
+    courseDetail: any,
     axiosJWT: AxiosJWT,
 ) => {
     try {
-        await axiosJWT.post(`http://localhost:8000/v1/course/${courseId}/register`, { userId });
+        await axiosJWT.post(`http://localhost:8000/v1/course/${courseDetail?._id}/register`, { userId, courseDetail });
         const user = await axiosJWT.get(`http://localhost:8000/v1/user/getuserbyid/${userId}`, {
             headers: { token: `Bearer ${accessToken}` },
         });
@@ -422,5 +422,48 @@ export const loginGoogle = async (token: any, dispatch: Dispatch, router: any) =
             console.log(err);
         }
         dispatch(loginFailed());
+    }
+};
+
+//API NOTIFY
+export const createNotify = async (notify: any, axiosJWT: AxiosJWT) => {
+    try {
+        const res = await axiosJWT.post('http://localhost:8000/v1/notify/create', notify);
+        return res.data;
+    } catch (err: any) {
+        if (err.response) {
+            console.log(err.response);
+            return err.response.data;
+        } else {
+            console.log(err);
+        }
+    }
+};
+
+export const getNotifyForUser = async (userId: any, role: any, axiosJWT: AxiosJWT) => {
+    try {
+        const res = await axiosJWT.get(`http://localhost:8000/v1/notify/getnotify/${userId}/${role}`);
+        return res.data;
+    } catch (err: any) {
+        if (err.response) {
+            console.log(err.response);
+            return err.response.data;
+        } else {
+            console.log(err);
+        }
+    }
+};
+
+export const updateNotificationsToRead = async (userId: any, role: any, axiosJWT: AxiosJWT) => {
+    try {
+        const res = await axiosJWT.put(`http://localhost:8000/v1/notify/markallread/${userId}/${role}`);
+        return res.data;
+    } catch (err: any) {
+        if (err.response) {
+            console.log(err.response);
+            return err.response.data;
+        } else {
+            console.log(err);
+        }
     }
 };

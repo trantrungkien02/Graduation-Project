@@ -27,6 +27,9 @@ const userSchema = new mongoose.Schema(
     registeredCourses: [
       {
         courseId: { type: String, required: true },
+        courseName: { type: String, required: true },
+        courseAvt: { type: String, required: true },
+        courseSlug: { type: String, required: true },
         lessonsCompleted: { type: Number, default: 0 },
       },
     ],

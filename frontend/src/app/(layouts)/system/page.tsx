@@ -1,10 +1,10 @@
 import React from 'react';
-import TermsOfUse from '~/modules/TermsOfUse';
+import ManageSystem from '~/modules/ManageSystem';
 
 type Props = {};
 
 const page = (props: Props) => {
-    return <TermsOfUse />;
+    return <ManageSystem />;
 };
 
 export default page;

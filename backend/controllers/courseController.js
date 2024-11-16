@@ -133,17 +133,24 @@ const courseController = {
   },
   incrementRegistration: async (req, res) => {
     const courseId = req.params.id;
-    console.log(courseId);
-    const { userId } = req.body; // Nhận userId từ yêu cầu để cập nhật vào User
+    const { userId, courseDetail } = req.body; // Lấy courseDetail từ yêu cầu
 
     try {
       // Tăng số lượng đăng ký của khóa học lên 1
       const course = await Course.findByIdAndUpdate(courseId, { $inc: { registrations: 1 } }, { new: true });
 
       if (course) {
-        // Thêm khóa học vào danh sách đã đăng ký của user
+        // Thêm khóa học với chi tiết vào danh sách đã đăng ký của user
         await User.findByIdAndUpdate(userId, {
-          $push: { registeredCourses: { courseId: courseId, completedLessons: 0 } },
+          $push: {
+            registeredCourses: {
+              courseId: courseDetail._id,
+              courseName: courseDetail.name,
+              courseAvt: courseDetail.image,
+              courseSlug: courseDetail.slug,
+              lessonsCompleted: 0,
+            },
+          },
         });
 
         res.status(200).json({

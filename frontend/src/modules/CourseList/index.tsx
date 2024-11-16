@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, Image } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
+import React, { Component } from 'react';
+import Slider from 'react-slick';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserGroup, faCirclePlay, faClock } from '@fortawesome/free-solid-svg-icons';
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { createAxios } from '~/app/createInstance';
 import { loginSuccess } from '~/redux/stateglobal/authSlice';
 import { getAllCourses, getLessonBycourseId } from '~/redux/stateglobal/apiRequest';
@@ -60,9 +63,59 @@ const CourseList = () => {
             router.push(`/courses/${slug}`);
         }
     };
-
+    const sliderRef = useRef<Slider | null>(null);
+    const settings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 3000,
+        arrows: false,
+    };
+    console.log(sliderRef.current);
     return (
         <div className="w-[calc(100vw-120px)] pl-[40px] pr-[50px]">
+            <div className="mt-[18px] pb-3 relative">
+                <LeftOutlined
+                    className="left-btn"
+                    onClick={() => {
+                        console.log('Prev clicked');
+                        sliderRef.current?.slickPrev();
+                    }}
+                />
+                <Slider ref={sliderRef} {...settings}>
+                    <div className="rounded-[16px]">
+                        <img
+                            src="https://thethaovanhoa.mediacdn.vn/372676912336973824/2023/4/13/3404725089438659800793855055254293639677183n-16813563122902043221769.jpeg"
+                            className="w-[1710px] h-[600px] object-cover rounded-[16px]"
+                        />
+                    </div>
+                    <div className="rounded-[16px]">
+                        <img
+                            src="https://www.elle.vn/wp-content/uploads/2023/04/08/523732/truong-nguyet-tan-minh-dan-sao-nu-1200x675-1-1024x576.png"
+                            className="w-[1710px] h-[600px] object-cover rounded-[16px]"
+                        />
+                    </div>
+                    <div className="rounded-[16px]">
+                        <img
+                            src="https://thanhnien.mediacdn.vn/uploaded/tuyenth/2021_01_05/4_RWRP.jpg?width=500"
+                            className="w-[1710px] h-[600px] object-cover rounded-[16px]"
+                        />
+                    </div>
+                    <div className="rounded-[16px]">
+                        <img
+                            src="https://assets2.htv.com.vn/Images/SoCap/ThuyChip/2020/Phim/thang12/nualaduongmatnualadauthuong/2.JPG"
+                            className="w-[1710px] h-[600px] object-cover rounded-[16px]"
+                        />
+                    </div>
+                </Slider>
+                <RightOutlined
+                    className="right-btn"
+                    onClick={() => sliderRef.current && sliderRef.current.slickNext()}
+                />
+            </div>
             <div className="course-title">Danh sách khóa học</div>
             <div className="grid grid-cols-5 gap-6 w-full">
                 {courseList?.map((course: any) => (

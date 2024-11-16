@@ -78,6 +78,13 @@ function Sidebar() {
                 </Link>,
                 '6',
             ),
+            getItem(
+                <Link href="/system" className="flex flex-col items-center justify-center">
+                    <FontAwesomeIcon icon={faGear} className="mb-[8px] text-[18px] text-[#000]" />
+                    <p className="!text-[#000] text-xs">Hệ thống</p>
+                </Link>,
+                '7',
+            ),
         );
     }
     const handleMenuClick: MenuProps['onClick'] = (e) => {

@@ -28,7 +28,8 @@
 .dropdown-notification {
     width: 420px;
     background-color: #fff;
-    box-shadow: 0 6.9677419662px 17.4193553925px 0 rgba(0, 0, 0, 0.102);
+    box-shadow: 0 -4px 32px #0003;
+    border-radius: 16px;
 
     &:hover {
         cursor: default;
@@ -39,19 +40,20 @@
     border-radius: 5px;
     border: 1px solid #dcdcdc;
     background: #fff;
-    box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -4px 32px #0003;
 }
 .dropdown-user {
     border-radius: 8.71px;
     background: #fff;
-    box-shadow: 0 6.9677419662px 17.4193553925px 0 rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -4px 32px #0003;
 }
 
 .dropdown-setting {
     border-radius: 5px;
     border: 1px solid #dcdcdc;
     background: #fff;
-    box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -4px 32px #0003;
+
     color: #575757;
     width: 260px;
 }

@@ -1,6 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { fetchCourseBySlug, getLessonBycourseId, registerCourseForUser } from '~/redux/stateglobal/apiRequest';
+import {
+    fetchCourseBySlug,
+    getCourseById,
+    getLessonBycourseId,
+    registerCourseForUser,
+} from '~/redux/stateglobal/apiRequest';
 import './page.scss';
 import { useDispatch, useSelector } from 'react-redux';
 import { createAxios } from '~/app/createInstance';
@@ -8,40 +13,27 @@ import { loginSuccess } from '~/redux/stateglobal/authSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGaugeHigh, faFilm, faClock, faBatteryFull, faCirclePlay } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 
 interface CourseDetailPageProps {
-    params: { slug: string }; // Nhận giá trị slug từ URL
+    params: { slug: string };
 }
 
-// Utility to convert HH:MM:SS or MM:SS to total seconds
-const convertToSeconds = (timeStr: any) => {
-    const parts = timeStr.split(':').map(Number);
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    if (parts.length === 2) return parts[0] * 60 + parts[1];
-    return 0;
-};
-
-// Utility to convert total seconds back to HH:MM:SS format
-const convertToHHMMSS = (totalSeconds: any) => {
-    const hours = Math.floor(totalSeconds / 3600)
-        .toString()
-        .padStart(2, '0');
-    const minutes = Math.floor((totalSeconds % 3600) / 60)
-        .toString()
-        .padStart(2, '0');
-    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-    return `${hours}:${minutes}:${seconds}`;
-};
+interface Lesson {
+    _id: string;
+    name: string;
+    videoId: string;
+    duration: string;
+    createdAt?: string;
+    locked?: boolean;
+}
 
 export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const [course, setCourse] = useState<any>(null);
-    const [lessons, setLessons] = useState<any[]>([]); // State to store lessons
+    const [lessons, setLessons] = useState<Lesson[]>([]);
     const user = useSelector((state: any) => state.auth.login?.currentUser);
     const dispatch = useDispatch();
     const router = useRouter();
     let axiosJWT = createAxios(user, dispatch, loginSuccess);
-    const [totalDuration, setTotalDuration] = useState('00:00:00');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -52,20 +44,18 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                 const lessonsData = await getLessonBycourseId(user?.accessToken, courseData._id, dispatch, axiosJWT);
                 setLessons(lessonsData);
 
-                // Calculate the total duration
                 const totalDurationSeconds = lessonsData.reduce((acc: any, lesson: any) => {
                     if (!lesson.duration) return acc;
 
                     const timeParts = lesson.duration.split(':').map(Number);
                     const seconds =
                         timeParts.length === 3
-                            ? timeParts[0] * 3600 + timeParts[1] * 60 + timeParts[2] // HH:MM:SS
-                            : timeParts[0] * 60 + timeParts[1]; // MM:SS
+                            ? timeParts[0] * 3600 + timeParts[1] * 60 + timeParts[2]
+                            : timeParts[0] * 60 + timeParts[1];
 
                     return acc + seconds;
                 }, 0);
 
-                // Convert total duration from seconds to HH:MM:SS
                 const hours = Math.floor(totalDurationSeconds / 3600);
                 const minutes = Math.floor((totalDurationSeconds % 3600) / 60);
                 const seconds = totalDurationSeconds % 60;
@@ -88,10 +78,10 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
 
     const handleCourseClick = async (slug: string, courseId: string) => {
         try {
-            // Call the backend to increment the registration count
-            await registerCourseForUser(user?.accessToken, user?._id, dispatch, courseId, axiosJWT);
+            const courseDetail = await getCourseById(user.accessToken, courseId, dispatch, axiosJWT);
 
-            // Navigate to the course learning page
+            await registerCourseForUser(user?.accessToken, user?._id, dispatch, courseDetail, axiosJWT);
+
             router.push(`/learning/${slug}`);
         } catch (error) {
             console.error('Error registering course:', error);
@@ -116,9 +106,8 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                         </span>
                     </div>
                 </div>
-                {/* Hiển thị tên các bài giảng */}
                 <ul className="lesson-list">
-                    {lessons.map((lesson, index) => (
+                    {lessons?.map((lesson, index) => (
                         <li key={lesson._id} className="lesson-item">
                             <div className="">
                                 <FontAwesomeIcon icon={faCirclePlay} className="mr-3 text-[18px] text-[#1261a6]" />
@@ -141,15 +130,10 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                     allowFullScreen
                 ></iframe>
                 <div className="course-info">
-                    {/* Course Pricing */}
                     <h2 className="course-pricing">{course.price === 'Miễn phí' ? 'Miễn phí' : `${course.price} đ`}</h2>
-
-                    {/* Register Button */}
                     <button className="register-button" onClick={() => handleCourseClick(course.slug, course._id)}>
                         Đăng ký học
                     </button>
-
-                    {/* Course Details */}
                     <ul className="course-details">
                         <li className="flex items-center">
                             <FontAwesomeIcon icon={faGaugeHigh} className="mr-3 text-[18px] text-[#000]" />

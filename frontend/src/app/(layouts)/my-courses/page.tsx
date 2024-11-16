@@ -1,10 +1,10 @@
 import React from 'react';
-// import NoCompany from '~/modules/NoCompany';
+import MyCourse from '~/modules/MyCourse';
 
 type Props = {};
 
 const page = (props: Props) => {
-    return <div></div>;
+    return <MyCourse />;
 };
 
 export default page;
