@@ -11,11 +11,13 @@ import {
     searchCourses,
     updateCourse,
     getCourseById,
+    getLessonBycourseId,
 } from '~/redux/stateglobal/apiRequest';
 
-const CourseList = () => {
+const CourseListById = () => {
     const user = useSelector((state: any) => state.auth.login?.currentUser);
     const courseList = useSelector((state: any) => state.course.courses?.allCoursesById ?? []); // Ensure it's an array
+    const lessonList = useSelector((state: any) => state.lesson.lesson?.allLessonsById ?? []);
     const dispatch = useDispatch();
     const router = useRouter();
     let axiosJWT = createAxios(user, dispatch, loginSuccess);
@@ -24,6 +26,8 @@ const CourseList = () => {
     const [searchField, setSearchField] = useState('name');
     const [editingCourse, setEditingCourse] = useState<any>(null); // Trạng thái đang edit
     const [isModalVisible, setIsModalVisible] = useState(false); // Trạng thái modal
+    const [isModalVisibleSl, setIsModalVisibleSl] = useState(false);
+    const [studentList, setStudentList] = useState<any[]>([]);
     const [form] = Form.useForm(); // Khởi tạo form từ Ant Design
     const [currentCourseList, setCurrentCourseList] = useState(courseList);
     const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -41,12 +45,20 @@ const CourseList = () => {
         if (debounceTimeout) {
             clearTimeout(debounceTimeout);
         }
-
         const timeout = setTimeout(async () => {
             if (searchText) {
-                await searchCourses(user?.accessToken, dispatch, axiosJWT, searchField, searchText);
+                const res = await searchCourses(
+                    user?.accessToken,
+                    dispatch,
+                    axiosJWT,
+                    searchField,
+                    searchText,
+                    user?._id,
+                );
+                setCurrentCourseList(res);
             } else {
-                await getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
+                const res = await getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
+                setCurrentCourseList(res);
             }
         }, 300);
 
@@ -96,6 +108,31 @@ const CourseList = () => {
         getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
     };
 
+    const handleViewStudents = async (courseId: string) => {
+        const res = await axiosJWT.get(`http://localhost:8000/v1/lesson/getlessonsbycourseid/` + courseId, {
+            headers: { token: `Bearer ${user?.accessToken}` },
+        });
+        console.log(res.data.length || 0);
+        const course = courseList.find((c: any) => c._id === courseId);
+        if (course) {
+            // Tạo bản sao của registeredUsers để không thay đổi trực tiếp đối tượng gốc
+            const updatedRegisteredUsers = course.registeredUsers.map((user: any) => {
+                return {
+                    ...user, // Giữ nguyên các thuộc tính của user
+                    courseLength: res.data.length, // Thêm thuộc tính courseLength
+                };
+            });
+
+            // Cập nhật lại studentList với mảng đã được chỉnh sửa
+            setStudentList(updatedRegisteredUsers);
+        }
+        setIsModalVisibleSl(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalVisibleSl(false);
+        setStudentList([]);
+    };
     // Ant Design Table columns configuration
     const columns = [
         {
@@ -138,7 +175,7 @@ const CourseList = () => {
                         }}
                         onClick={() => handleEdit(record._id)}
                     >
-                        Edit
+                        Sửa
                     </Button>
                     <Button
                         onClick={() => handleDelete(record._id)}
@@ -150,7 +187,19 @@ const CourseList = () => {
                             marginLeft: '20px',
                         }}
                     >
-                        Delete
+                        Xóa
+                    </Button>
+                    <Button
+                        onClick={() => handleViewStudents(record._id)}
+                        style={{
+                            backgroundColor: '#0b3a82',
+                            borderColor: '#0b3a82',
+                            borderRadius: '5px',
+                            color: 'white',
+                            marginLeft: '20px',
+                        }}
+                    >
+                        Xem ds học viên
                     </Button>
                 </>
             ),
@@ -210,8 +259,47 @@ const CourseList = () => {
                     </Form.Item>
                 </Form>
             </Modal>
+            <Modal
+                title="Danh sách học viên"
+                visible={isModalVisibleSl}
+                onCancel={handleCloseModal}
+                footer={null}
+                width={1200}
+                centered
+            >
+                <Table
+                    dataSource={studentList}
+                    columns={[
+                        {
+                            title: 'Tên học viên',
+                            dataIndex: 'name',
+                            key: 'name',
+                        },
+                        {
+                            title: 'Email',
+                            dataIndex: 'email',
+                            key: 'email',
+                        },
+                        {
+                            title: 'Tiến độ',
+                            dataIndex: 'lessonCompleted', // Lấy 'lessonCompleted' làm dữ liệu hiển thị
+                            key: 'progress',
+                            render: (lessonCompleted, record) => {
+                                return `${lessonCompleted} / ${record.courseLength} Bài học`; // Hiển thị 'lessonCompleted / courseLength'
+                            },
+                        },
+                        {
+                            title: 'Ngày đăng ký',
+                            dataIndex: 'registeredAt',
+                            key: 'registeredAt',
+                            render: (text: string) => new Date(text).toLocaleString(),
+                        },
+                    ]}
+                    rowKey="userId"
+                />
+            </Modal>
         </div>
     );
 };
 
-export default CourseList;
+export default CourseListById;

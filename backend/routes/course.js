@@ -13,9 +13,15 @@ router.get('/detail/:slug', coursesController.getCourseBySlug);
 
 router.get('/search', coursesController.searchCourses);
 
+router.get('/searchforall', coursesController.searchCoursesForAll);
+
 router.post('/:id/register', coursesController.incrementRegistration);
 
 router.put('/update/:id', coursesController.updateCourse);
+
+router.put('/updatels/:courseId/:userId', coursesController.updateLessonCompleted);
+
+router.put('/updateadduser/:id', coursesController.updateCourseAddUser);
 
 router.delete('/delete/:id', coursesController.deleteCourse);
 

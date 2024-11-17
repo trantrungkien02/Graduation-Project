@@ -1,6 +1,12 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { createNotify, fetchCourseBySlug, getLessonBycourseId, updateUser } from '~/redux/stateglobal/apiRequest';
+import {
+    createNotify,
+    fetchCourseBySlug,
+    getLessonBycourseId,
+    updateLessonCompleted,
+    updateUser,
+} from '~/redux/stateglobal/apiRequest';
 import Image from 'next/image';
 import React from 'react';
 import { CommentSection } from 'react-comments-section';
@@ -234,7 +240,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
 
                 // Gửi yêu cầu API để cập nhật người dùng
                 const updatedUserData = await updateUser(updatedUser, dispatch);
-
+                await updateLessonCompleted(dispatch, course._id, user?._id, axiosJWT);
                 // Cập nhật lại người dùng trong Redux
                 dispatch(loginCourseForUserSuccess(updatedUserData));
             }
@@ -319,6 +325,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                 senderName: updatedRecommentData.fullName,
                 receiverId: reply === '' ? comment.userId : reply.userId,
                 tittle: `${updatedRecommentData.fullName} đã trả lời bình luận của bạn`,
+                type: 'comment',
                 des: valueQuillRecomment.replace(/<[^>]*>/g, ''),
                 lessonId: comment.lessonId,
                 courseId: course.slug,

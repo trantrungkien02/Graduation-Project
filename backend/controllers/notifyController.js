@@ -42,12 +42,71 @@ const notifyController = {
 
       const notifications = await Notification.find({
         $or: conditions,
-      });
+      }).sort({ createdAt: -1 }); // Sắp xếp từ mới nhất đến cũ nhất
 
       res.status(200).json(notifications);
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: 'Error retrieving notifications', error: err });
+    }
+  },
+
+  getNotificationsBySenderId: async (req, res) => {
+    try {
+      const { senderId } = req.params;
+
+      // Tìm thông báo với senderId và type === "system"
+      const notifications = await Notification.find({
+        $and: [{ senderId }, { type: 'system' }],
+      }).sort({ createdAt: -1 }); // Sắp xếp từ mới nhất đến cũ nhất
+
+      res.status(200).json(notifications);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error retrieving notifications', error: err });
+    }
+  },
+
+  getNotificationById: async (req, res) => {
+    try {
+      const { notifyId } = req.params;
+
+      const notification = await Notification.findById(notifyId);
+
+      if (!notification) {
+        return res.status(404).json({ message: 'Notification not found' });
+      }
+
+      res.status(200).json(notification);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error retrieving notification', error: err });
+    }
+  },
+
+  updateNotify: async (req, res) => {
+    try {
+      const { notifyId } = req.params;
+      const updateData = req.body;
+
+      // Tìm và cập nhật thông báo dựa trên notificationId
+      const updatedNotification = await Notification.findByIdAndUpdate(
+        notifyId,
+        updateData,
+        { new: true }, // Trả về thông báo đã cập nhật
+      );
+
+      if (!updatedNotification) {
+        return res.status(404).json({ message: 'Notification not found' });
+      }
+
+      res.status(200).json({
+        message: 'Notification updated successfully',
+        data: updatedNotification,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error updating notification', error: err });
     }
   },
 
@@ -77,6 +136,75 @@ const notifyController = {
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: 'Error updating notifications', error: err });
+    }
+  },
+  updateNotificationToRead: async (req, res) => {
+    try {
+      const { receiverId, notifyId } = req.params;
+
+      // Cập nhật chỉ cho người dùng hiện tại và thông báo được chỉ định
+      const notification = await Notification.findByIdAndUpdate(
+        notifyId,
+        { $addToSet: { readBy: receiverId } }, // Thêm người dùng vào danh sách đã đọc
+        { new: true }, // Trả về bản ghi sau khi cập nhật
+      );
+
+      if (!notification) {
+        return res.status(404).json({ message: 'Notification not found' });
+      }
+
+      res.status(200).json(notification);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error updating notification', error: err });
+    }
+  },
+
+  deleteNotify: async (req, res) => {
+    try {
+      const { notifyId } = req.params;
+
+      // Tìm và xóa thông báo dựa trên notificationId
+      const deletedNotification = await Notification.findByIdAndDelete(notifyId);
+
+      if (!deletedNotification) {
+        return res.status(404).json({ message: 'Notification not found' });
+      }
+
+      res.status(200).json({
+        message: 'Notification deleted successfully',
+        data: deletedNotification,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error deleting notification', error: err });
+    }
+  },
+
+  searchNotifyByUser: async (req, res) => {
+    try {
+      const { field, q, senderId } = req.query; // Lấy field, q, senderId từ query string
+
+      // Kiểm tra xem có tham số query không
+      if (!q) {
+        return res.status(400).json({ message: 'Query parameter is required' });
+      }
+
+      // Kiểm tra xem có field hợp lệ không (ví dụ: tittle hoặc des)
+      if (!['tittle', 'des'].includes(field)) {
+        return res.status(400).json({ message: 'Invalid field parameter' });
+      }
+
+      // Tìm kiếm thông báo dựa vào senderId, trường field và từ khóa query
+      const notifications = await Notification.find({
+        senderId: senderId,
+        [field]: { $regex: q, $options: 'i' }, // Tìm kiếm theo trường và giá trị tìm kiếm
+      });
+
+      res.status(200).json(notifications);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Error searching notifications', error: err });
     }
   },
 };

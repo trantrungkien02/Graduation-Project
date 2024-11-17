@@ -5,6 +5,7 @@ import {
     getCourseById,
     getLessonBycourseId,
     registerCourseForUser,
+    updateCourseAddUser,
 } from '~/redux/stateglobal/apiRequest';
 import './page.scss';
 import { useDispatch, useSelector } from 'react-redux';
@@ -78,6 +79,15 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
 
     const handleCourseClick = async (slug: string, courseId: string) => {
         try {
+            const userData = {
+                userId: user?._id,
+                name: user?.username,
+                email: user?.email,
+                registeredAt: new Date(),
+            };
+            console.log(userData);
+            await updateCourseAddUser(user.accessToken, dispatch, courseId, userData, axiosJWT);
+
             const courseDetail = await getCourseById(user.accessToken, courseId, dispatch, axiosJWT);
 
             await registerCourseForUser(user?.accessToken, user?._id, dispatch, courseDetail, axiosJWT);
@@ -107,16 +117,20 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                     </div>
                 </div>
                 <ul className="lesson-list">
-                    {lessons?.map((lesson, index) => (
-                        <li key={lesson._id} className="lesson-item">
-                            <div className="">
-                                <FontAwesomeIcon icon={faCirclePlay} className="mr-3 text-[18px] text-[#1261a6]" />
-                                <span className="lesson-number">Bài {index + 1}.</span>
-                                <span className="text-[16px]">{lesson.name}</span>
-                            </div>
-                            <span className="text-[16px] text-[#1261a6]">{lesson.duration || '00:00:00'}</span>
-                        </li>
-                    ))}
+                    {lessons?.length > 0 ? (
+                        lessons.map((lesson, index) => (
+                            <li key={lesson._id} className="lesson-item">
+                                <div>
+                                    <FontAwesomeIcon icon={faCirclePlay} className="mr-3 text-[18px] text-[#1261a6]" />
+                                    <span className="lesson-number">Bài {index + 1}.</span>
+                                    <span className="text-[16px]">{lesson.name}</span>
+                                </div>
+                                <span className="text-[16px] text-[#1261a6]">{lesson.duration || '00:00:00'}</span>
+                            </li>
+                        ))
+                    ) : (
+                        <p className="text-center text-[16px] text-gray-500">Khóa học này chưa có bài giảng nào</p>
+                    )}
                 </ul>
             </div>
             <div className="w-1/3 video-container px-3 course-detail-page">

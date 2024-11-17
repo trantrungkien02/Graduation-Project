@@ -10,6 +10,7 @@ import './index.scss';
 import axios from 'axios';
 import { createAxios } from '~/app/createInstance';
 import { logOutSuccess } from '~/redux/stateglobal/authSlice';
+import NotifyList from './NotifyListById';
 function ManageSystem() {
     const [form] = Form.useForm();
     const router = useRouter();
@@ -24,6 +25,7 @@ function ManageSystem() {
                 ...values,
                 senderId: user?._id,
                 isGlobal: values.role === 'all' ? true : false,
+                type: 'system',
             };
             console.log(dataToSend);
             const response = await createNotify(dataToSend, axiosJWT);
@@ -165,7 +167,9 @@ function ManageSystem() {
                         </Button>
                     </Form>
                 </Tabs.TabPane>
-                <Tabs.TabPane tab={<div>Xem danh sách khóa học</div>} key="3"></Tabs.TabPane>
+                <Tabs.TabPane tab={<div>Xem danh sách thông báo</div>} key="3">
+                    <NotifyList />
+                </Tabs.TabPane>
             </Tabs>
         </div>
     );

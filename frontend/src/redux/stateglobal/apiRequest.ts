@@ -238,13 +238,18 @@ export const searchCourses = async (
     axiosJWT: AxiosJWT,
     field: string,
     query: string,
+    userId: string,
 ) => {
     dispatch(getCoursesByIdStart());
     try {
-        const res = await axiosJWT.get(`http://localhost:8000/v1/course/search?field=${field}&q=${query}`, {
-            headers: { token: `Bearer ${accessToken}` },
-        });
+        const res = await axiosJWT.get(
+            `http://localhost:8000/v1/course/search?field=${field}&q=${query}&userId=${userId}`,
+            {
+                headers: { token: `Bearer ${accessToken}` },
+            },
+        );
         dispatch(getCoursesByIdSuccess(res.data));
+        return res.data;
     } catch (err) {
         dispatch(getCoursesByIdFailed());
     }
@@ -274,6 +279,34 @@ export const updateCourse = async (accessToken: string, dispatch: Dispatch, cour
         const res = await axiosJWT.put(`http://localhost:8000/v1/course/update/${courseData._id}`, courseData, {
             headers: { token: `Bearer ${accessToken}` },
         });
+        dispatch(getCoursesByIdSuccess(res.data));
+    } catch (err) {
+        dispatch(getCoursesByIdFailed());
+    }
+};
+
+export const updateCourseAddUser = async (
+    accessToken: string,
+    dispatch: Dispatch,
+    courseId: any,
+    userData: any,
+    axiosJWT: AxiosJWT,
+) => {
+    dispatch(getCoursesByIdStart());
+    try {
+        const res = await axiosJWT.put(`http://localhost:8000/v1/course/updateadduser/${courseId}`, userData, {
+            headers: { token: `Bearer ${accessToken}` },
+        });
+        dispatch(getCoursesByIdSuccess(res.data));
+    } catch (err) {
+        dispatch(getCoursesByIdFailed());
+    }
+};
+
+export const updateLessonCompleted = async (dispatch: Dispatch, courseId: any, userId: any, axiosJWT: AxiosJWT) => {
+    dispatch(getCoursesByIdStart());
+    try {
+        const res = await axiosJWT.put(`http://localhost:8000/v1/course/updatels/${courseId}/${userId}`);
         dispatch(getCoursesByIdSuccess(res.data));
     } catch (err) {
         dispatch(getCoursesByIdFailed());
@@ -454,9 +487,102 @@ export const getNotifyForUser = async (userId: any, role: any, axiosJWT: AxiosJW
     }
 };
 
+export const getNotifyForAdmin = async (userId: any, axiosJWT: AxiosJWT) => {
+    try {
+        const res = await axiosJWT.get(`http://localhost:8000/v1/notify/getnotifybysenderid/${userId}`);
+        return res.data;
+    } catch (err: any) {
+        if (err.response) {
+            console.log(err.response);
+            return err.response.data;
+        } else {
+            console.log(err);
+        }
+    }
+};
+
+export const getNotifyById = async (notifyId: any, axiosJWT: AxiosJWT) => {
+    try {
+        const res = await axiosJWT.get(`http://localhost:8000/v1/notify/getnotifybyid/${notifyId}`);
+        return res.data;
+    } catch (err: any) {
+        if (err.response) {
+            console.log(err.response);
+            return err.response.data;
+        } else {
+            console.log(err);
+        }
+    }
+};
+
+export const updateNotify = async (accessToken: string, dispatch: Dispatch, notifyData: any, axiosJWT: AxiosJWT) => {
+    try {
+        const res = await axiosJWT.put(`http://localhost:8000/v1/notify/updatenotify/${notifyData._id}`, notifyData, {
+            headers: { token: `Bearer ${accessToken}` },
+        });
+        dispatch(getCoursesByIdSuccess(res.data));
+    } catch (err) {
+        dispatch(getCoursesByIdFailed());
+    }
+};
+
 export const updateNotificationsToRead = async (userId: any, role: any, axiosJWT: AxiosJWT) => {
     try {
         const res = await axiosJWT.put(`http://localhost:8000/v1/notify/markallread/${userId}/${role}`);
+        return res.data;
+    } catch (err: any) {
+        if (err.response) {
+            console.log(err.response);
+            return err.response.data;
+        } else {
+            console.log(err);
+        }
+    }
+};
+
+export const updateNotificationToRead = async (userId: any, notifyId: any, axiosJWT: AxiosJWT) => {
+    try {
+        const res = await axiosJWT.put(`http://localhost:8000/v1/notify/markoneread/${userId}/${notifyId}`);
+        return res.data;
+    } catch (err: any) {
+        if (err.response) {
+            console.log(err.response);
+            return err.response.data;
+        } else {
+            console.log(err);
+        }
+    }
+};
+
+export const deleteNotify = async (accessToken: string, notifyId: string, axiosJWT: AxiosJWT) => {
+    try {
+        const res = await axiosJWT.delete(`http://localhost:8000/v1/notify/deletenotify/` + notifyId, {
+            headers: { token: `Bearer ${accessToken}` },
+        });
+    } catch (err: any) {
+        if (err.response) {
+            console.log(err.response);
+            return err.response.data;
+        } else {
+            console.log(err);
+        }
+    }
+};
+
+export const searchNotify = async (
+    accessToken: string,
+    axiosJWT: AxiosJWT,
+    field: string,
+    query: string,
+    senderId: string,
+) => {
+    try {
+        const res = await axiosJWT.get(
+            `http://localhost:8000/v1/notify/searchnotify?field=${field}&q=${query}&senderId=${senderId}`,
+            {
+                headers: { token: `Bearer ${accessToken}` },
+            },
+        );
         return res.data;
     } catch (err: any) {
         if (err.response) {

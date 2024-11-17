@@ -71,3 +71,48 @@
 .space-work svg {
     fill: #000;
 }
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    font-size: 16px;
+    color: #555;
+}
+.ant-modal-content {
+    border-radius: 16px;
+}
+@keyframes slideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.no-result {
+    background: #fff;
+    box-shadow: 0 -4px 32px #0003;
+    transition: all ease-in-out 0.3s;
+    animation: slideUp ease 0.3s;
+    border-radius: 10px;
+    padding: 12px 24px;
+    margin: 0;
+    overflow: hidden;
+    will-change: opacity, transform;
+    color: #1d2129;
+}
+.ellipsis {
+    width: 30px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

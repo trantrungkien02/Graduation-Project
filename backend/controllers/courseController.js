@@ -1,6 +1,7 @@
 // const { mongooseToOject } = require('../../utils/mongoose');
 const Course = require('../models/Course');
 const User = require('../models/User');
+const unidecode = require('unidecode');
 const courseController = {
   // DANG KHOA HOC
   registerCourse: async (req, res) => {
@@ -96,20 +97,48 @@ const courseController = {
     }
   },
   searchCourses: async (req, res) => {
-    const { field, q } = req.query;
+    const { field, q, userId } = req.query; // Lấy tham số userId từ query
 
     try {
-      // Nếu không có query tìm kiếm, trả về tất cả khóa học
+      // Nếu không có query tìm kiếm, trả về tất cả khóa học của người dùng
       if (!q) {
-        const courses = await Course.find();
+        const courses = await Course.find({ userId: userId }); // Lọc khóa học theo userId
         return res.status(200).json(courses);
       }
 
-      // Tìm kiếm theo trường cụ thể
-      const courses = await Course.find({ [field]: { $regex: q, $options: 'i' } });
+      // Tìm kiếm theo trường cụ thể trong các khóa học của người dùng
+      const courses = await Course.find({
+        userId: userId, // Lọc theo userId
+        [field]: { $regex: q, $options: 'i' }, // Tìm kiếm theo trường và giá trị tìm kiếm
+      });
+
       return res.status(200).json(courses);
     } catch (err) {
       res.status(500).json(err);
+    }
+  },
+  searchCoursesForAll: async (req, res) => {
+    const { q } = req.query; // Lấy tham số tìm kiếm từ query
+
+    try {
+      // Nếu không có query tìm kiếm, trả về tất cả các khóa học
+      if (!q) {
+        const courses = await Course.find(); // Trả về tất cả các khóa học
+        return res.status(200).json(courses);
+      }
+
+      // Tìm kiếm mặc định theo name và des
+      const courses = await Course.find({
+        $or: [
+          { name: { $regex: q, $options: 'i' } }, // Tìm kiếm theo name (không phân biệt hoa thường)
+          { des: { $regex: q, $options: 'i' } }, // Tìm kiếm theo des (không phân biệt hoa thường)
+        ],
+      });
+
+      return res.status(200).json(courses);
+    } catch (err) {
+      console.error('Error searching courses:', err);
+      res.status(500).json({ message: 'Error searching courses', error: err });
     }
   },
   updateCourse: async (req, res) => {
@@ -131,13 +160,51 @@ const courseController = {
       return res.status(500).json(err);
     }
   },
+
+  updateCourseAddUser: async (req, res) => {
+    const { id } = req.params; // Lấy id khóa học từ params
+    const userData = req.body; // Lấy thông tin người dùng từ body
+
+    try {
+      // Kiểm tra xem thông tin người dùng có tồn tại không
+      console.log(req.body);
+      if (!userData || !userData.userId) {
+        return res.status(400).json({ message: 'Thông tin người dùng không hợp lệ' });
+      }
+
+      // Tìm khóa học và cập nhật mảng registeredUsers
+      const updatedCourse = await Course.findByIdAndUpdate(
+        id,
+        {
+          $addToSet: {
+            // Chỉ thêm người dùng nếu chưa tồn tại
+            registeredUsers: userData,
+          },
+          $inc: { registrations: 1 }, // Tăng số lượng đăng ký
+        },
+        { new: true, runValidators: true },
+      );
+
+      // Nếu không tìm thấy khóa học, trả về lỗi
+      if (!updatedCourse) {
+        return res.status(404).json({ message: 'Khóa học không tồn tại' });
+      }
+
+      // Trả về khóa học đã cập nhật
+      return res.status(200).json(updatedCourse);
+    } catch (err) {
+      console.error('Error updating course:', err);
+      return res.status(500).json(err);
+    }
+  },
+
   incrementRegistration: async (req, res) => {
     const courseId = req.params.id;
     const { userId, courseDetail } = req.body; // Lấy courseDetail từ yêu cầu
 
     try {
       // Tăng số lượng đăng ký của khóa học lên 1
-      const course = await Course.findByIdAndUpdate(courseId, { $inc: { registrations: 1 } }, { new: true });
+      const course = await Course.findById(courseId);
 
       if (course) {
         // Thêm khóa học với chi tiết vào danh sách đã đăng ký của user
@@ -162,6 +229,38 @@ const courseController = {
       }
     } catch (error) {
       res.status(500).json({ message: 'Lỗi khi đăng ký khóa học', error });
+    }
+  },
+  updateLessonCompleted: async (req, res) => {
+    const { courseId, userId } = req.params; // Lấy courseId và userId từ params
+
+    try {
+      // Tìm khóa học theo courseId
+      const course = await Course.findById(courseId);
+
+      // Nếu không tìm thấy khóa học
+      if (!course) {
+        return res.status(404).json({ message: 'Khóa học không tồn tại' });
+      }
+
+      // Tìm user trong mảng registeredUsers
+      const user = course.registeredUsers.find(user => user.userId == userId);
+
+      // Nếu không tìm thấy user
+      if (!user) {
+        return res.status(404).json({ message: 'User không tồn tại trong khóa học này' });
+      }
+
+      // Tăng lessonCompleted lên 1
+      user.lessonCompleted += 1;
+
+      // Lưu lại khóa học sau khi cập nhật
+      await course.save();
+
+      // Trả về thông tin khóa học sau khi cập nhật
+      return res.status(200).json(course);
+    } catch (err) {
+      return res.status(500).json({ message: 'Đã xảy ra lỗi', error: err });
     }
   },
   deleteCourse: async (req, res) => {

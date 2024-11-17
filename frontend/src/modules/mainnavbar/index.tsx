@@ -12,9 +12,9 @@ import {
 } from '@ant-design/icons';
 import type { MenuProps, RadioChangeEvent } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark, faBell, faQuestionCircle } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark, faBell, faQuestionCircle, faUser } from '@fortawesome/free-regular-svg-icons';
 
-import { Button, Input, Dropdown, Space, Tabs, Empty, Menu, Radio, Badge } from 'antd';
+import { Button, Input, Dropdown, Space, Tabs, Empty, Menu, Radio, Badge, Modal, List, Avatar } from 'antd';
 import './index.scss';
 import { icons } from '~/assets/images/icons/icons';
 import Evaluate from './components/Evaluate';
@@ -31,6 +31,7 @@ import {
     getNotifyForUser,
     logOut,
     updateNotificationsToRead,
+    updateNotificationToRead,
 } from '~/redux/stateglobal/apiRequest';
 
 interface Notification {
@@ -68,6 +69,12 @@ function MainNavbar() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+
     // Fetch courses when component mounts
     useEffect(() => {
         if (!user) {
@@ -201,10 +208,44 @@ function MainNavbar() {
         }
     };
 
+    const markOneRead = async (courseId: any, lessonId: any, notifyId: string) => {
+        if (unreadCount <= 0) {
+            // Nếu không có thông báo chưa đọc, chỉ cần hiển thị modal
+            const selectedNotif = notifications.find((notif: any) => notif._id === notifyId);
+            setSelectedNotification(selectedNotif || null);
+            setIsModalOpen(true);
+            return;
+        }
+
+        try {
+            setLoading(true);
+
+            // Gọi API để cập nhật trạng thái đã đọc
+            await updateNotificationToRead(id, notifyId, axiosJWT);
+
+            // Lấy danh sách thông báo mới
+            const notifyData = await getNotifyForUser(id, user?.role, axiosJWT);
+            setNotifications(notifyData);
+
+            // Tính lại số thông báo chưa đọc
+            const unread = notifyData.filter((notif: any) => !notif.readBy.includes(id)).length;
+            setUnreadCount(unread);
+
+            // Hiển thị modal chi tiết
+            const selectedNotif = notifyData.find((notif: any) => notif._id === notifyId);
+            setSelectedNotification(selectedNotif);
+            setIsModalOpen(true);
+        } catch (err) {
+            console.error('Error marking notifications as read:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const itemsNotification = (
         <div className="dropdown-notification">
             <div className="flex p-3 items-center justify-between border-solid border-b border-slate-200">
-                <p className="font-normal text-base">Thông báo ({notifications.length})</p>
+                <p className="font-normal text-base">Thông báo ({notifications?.length})</p>
                 <button type="button" onClick={markAllAsRead} disabled={loading}>
                     <div className="font-normal text-sm text-blue-500 items-center flex">
                         Đánh dấu tất cả là đã đọc
@@ -214,10 +255,10 @@ function MainNavbar() {
             </div>
             <Tabs defaultActiveKey="1" centered>
                 <Tabs.TabPane tab="Tất cả" key="1">
-                    <div className="list-noti custom-scrollbar p-2">
+                    <div className="list-noti custom-scrollbar p-2 relative h-[300px] overflow-auto">
                         {loading ? (
-                            <p>Đang tải...</p>
-                        ) : notifications.length > 0 ? (
+                            <div className="loading-overlay">Đang tải...</div>
+                        ) : notifications?.length > 0 ? (
                             notifications
                                 .slice()
                                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -226,7 +267,7 @@ function MainNavbar() {
                                         key={notif._id}
                                         className={`notification-item p-4 border-b border-solid border-slate-200 relative ${notif.readBy.includes(id) ? '' : 'bg-[#dfe7eb]'} my-2 rounded-[16px]`}
                                         onClick={() => {
-                                            router.push(`/learning/${notif.courseId}?id=${notif.lessonId}`);
+                                            markOneRead(notif.courseId, notif.lessonId, notif._id);
                                         }}
                                     >
                                         <p className="font-bold mb-2">{notif.tittle}</p>
@@ -246,6 +287,68 @@ function MainNavbar() {
                             />
                         )}
                     </div>
+                    <Modal
+                        title={selectedNotification?.tittle || 'Thông báo'}
+                        open={isModalOpen}
+                        onCancel={() => setIsModalOpen(false)}
+                        footer={null}
+                        style={{ borderRadius: '16px' }}
+                    >
+                        {selectedNotification?.type === 'comment' ? (
+                            <div>
+                                <p>
+                                    <strong>
+                                        <FontAwesomeIcon
+                                            icon={faUser}
+                                            className="text-[15px] mt-[5px] text-[#555] hover:text-[#0b3a82]"
+                                        />
+                                    </strong>{' '}
+                                    {selectedNotification?.senderName}
+                                </p>
+                                <p>
+                                    <strong>Mô tả:</strong> {selectedNotification?.des}
+                                </p>
+                                <p>
+                                    <strong>Khóa học:</strong> {selectedNotification?.courseId}
+                                </p>
+                                <p>
+                                    <strong>Thời gian:</strong>{' '}
+                                    {new Date(selectedNotification?.createdAt || '').toLocaleString()}
+                                </p>
+                                <div>
+                                    Chuyển hướng đến:{' '}
+                                    <strong
+                                        onClick={() =>
+                                            router.push(
+                                                `/learning/${selectedNotification.courseId}?id=${selectedNotification.lessonId}`,
+                                            )
+                                        }
+                                    >
+                                        {selectedNotification?.courseId}
+                                    </strong>
+                                </div>
+                            </div>
+                        ) : (
+                            <div>
+                                <p>
+                                    <strong>
+                                        <FontAwesomeIcon
+                                            icon={faUser}
+                                            className="text-[15px] mt-[5px] text-[#555] hover:text-[#0b3a82]"
+                                        />
+                                    </strong>{' '}
+                                    Admin
+                                </p>
+                                <p>
+                                    <strong>Mô tả:</strong> {selectedNotification?.des}
+                                </p>
+                                <p>
+                                    <strong>Thời gian:</strong>{' '}
+                                    {new Date(selectedNotification?.createdAt || '').toLocaleString()}
+                                </p>
+                            </div>
+                        )}
+                    </Modal>
                 </Tabs.TabPane>
                 <Tabs.TabPane tab="Cá nhân" key="2">
                     <div className="list-noti custom-scrollbar">
@@ -504,7 +607,33 @@ function MainNavbar() {
             </div>
         </div>
     );
+    const handleSearch = async (value: string) => {
+        setSearchTerm(value);
 
+        if (value.trim() === '') {
+            setSearchResults([]);
+            setIsDropdownVisible(false);
+            return;
+        }
+
+        try {
+            const { data } = await axiosJWT.get(`http://localhost:8000/v1/course/searchforall`, {
+                params: { q: value },
+            });
+            setSearchResults(data); // Cập nhật kết quả tìm kiếm
+            setIsDropdownVisible(true); // Hiển thị dropdown
+        } catch (error) {
+            console.error('Error fetching search results:', error);
+        }
+    };
+    const handleCourseClick = (slug: string, courseId: any) => {
+        const isRegistered = user?.registeredCourses?.some((course: any) => course.courseId == courseId);
+        if (isRegistered) {
+            router.push(`/learning/${slug}`);
+        } else {
+            router.push(`/courses/${slug}`);
+        }
+    };
     return (
         <div className="navbar flex items-center bg-white">
             <div className="flex items-center navbar-left">
@@ -513,7 +642,7 @@ function MainNavbar() {
                 </Link>
             </div>
             <div
-                className={`cursor-pointer expanding-search-global transition-all 'w-[500px]'`}
+                className={`cursor-pointer expanding-search-global transition-all 'w-[500px]' relative`}
                 onClick={handleFocus}
                 onBlur={handleBlur}
                 tabIndex={0}
@@ -522,8 +651,60 @@ function MainNavbar() {
                     size="large"
                     placeholder="Tìm kiếm khóa học"
                     prefix={<SearchOutlined className="opacity-[.7] mr-1" />}
-                    className={` rounded-[20px] bg-white h-[40px] ml-[6px] w-[500px]`}
+                    className="rounded-[20px] bg-white h-[40px] ml-[6px] w-[500px]"
+                    onChange={(e) => handleSearch(e.target.value)} // Xử lý khi nhập
+                    onFocus={() => setIsDropdownVisible(true)} // Hiển thị gợi ý khi focus
+                    onBlur={() => setTimeout(() => setIsDropdownVisible(false), 200)} // Ẩn gợi ý khi blur
                 />
+
+                {/* Dropdown hiển thị gợi ý */}
+                {searchTerm.length > 0 && isDropdownVisible ? (
+                    searchResults.length > 0 ? (
+                        <div className="absolute top-[130%] left-[6px] w-[500px] no-result">
+                            <p className=" text-gray-500 text-sm py-[6px]">
+                                <SearchOutlined className="opacity-[.7] mr-1" /> Kết quả cho '{searchTerm}'
+                            </p>
+                            <div className="flex items-center justify-between pt-2 pb-1 border-b border-gray-200 mb-1.5">
+                                <h5 className="text-[16px] font-medium text-[#333] m-0">KHÓA HỌC</h5>
+                                <Link className="text-[#666]" href="/search">
+                                    Xem thêm
+                                </Link>
+                            </div>
+                            <List
+                                itemLayout="horizontal"
+                                dataSource={searchResults}
+                                renderItem={(item: any) => (
+                                    <List.Item
+                                        className="cursor-pointer  transition-all w-full"
+                                        onClick={() => {
+                                            handleCourseClick(item?.slug, item?._id);
+                                        }}
+                                    >
+                                        <List.Item.Meta
+                                            avatar={<Avatar src={item?.image} />}
+                                            title={
+                                                <span className="text-[16px] overflow-hidden text-ellipsis whitespace-nowrap w-[400] block">
+                                                    {item?.name}
+                                                </span>
+                                            }
+                                            description={
+                                                <span className="overflow-hidden text-ellipsis whitespace-nowrap w-[400] block">
+                                                    {item?.des}
+                                                </span>
+                                            }
+                                        />
+                                    </List.Item>
+                                )}
+                            />
+                        </div>
+                    ) : (
+                        <div className="absolute top-[130%] left-[6px] w-[500px] h-[50px] no-result">
+                            <p className=" text-gray-500 text-sm pt-[6px]">
+                                <SearchOutlined className="opacity-[.7] mr-1" /> Không có kết quả cho '{searchTerm}'
+                            </p>
+                        </div>
+                    )
+                ) : null}
             </div>
             <div className="flex items-center justify-center navbar-right gap-x-3">
                 <Dropdown overlay={itemsMyCourse} trigger={['click']}>
