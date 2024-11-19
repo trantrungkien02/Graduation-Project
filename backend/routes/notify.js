@@ -5,6 +5,8 @@ const router = require('express').Router();
 //REGISTER
 router.post('/create', notifyController.createNotification);
 
+router.post('/createforcourse', notifyController.createNotificationForCourse);
+
 router.get('/getnotify/:receiverId/:role', notifyController.getNotificationsByReceiverId);
 
 router.get('/getnotifybyid/:notifyId', notifyController.getNotificationById);

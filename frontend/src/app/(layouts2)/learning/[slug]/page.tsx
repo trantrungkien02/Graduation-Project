@@ -29,6 +29,8 @@ import {
     faNoteSticky,
     faCircleQuestion,
     faEllipsis,
+    faSpinner,
+    faFileLines,
 } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/navigation';
 import { Button, Dropdown, Menu, message, Modal } from 'antd';
@@ -37,6 +39,7 @@ import CommentForm from '~/modules/Comment';
 import axios from 'axios';
 import { images } from '~/assets/images';
 import { components } from 'react-big-calendar';
+import Quiz from '~/modules/Quiz';
 
 interface CourseDetailPageProps {
     params: { slug: string };
@@ -47,10 +50,23 @@ interface Lesson {
     name: string;
     videoId: string;
     duration: string;
+    type: string;
+    quesList: Question[];
     createdAt?: string;
     locked?: boolean;
 }
 
+type Question = {
+    a: string;
+    b: string;
+    c: string;
+    d: string;
+    explanation: string;
+    quesCorrect: string;
+    quesName: string;
+    _id: string;
+    [key: string]: string;
+};
 type Reply = {
     userId: string;
     fullName: string;
@@ -349,7 +365,14 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     };
 
     if (!course || !selectedLesson) {
-        return <div>Loading course details...</div>;
+        return (
+            <div className="loading-overlay">
+                <FontAwesomeIcon
+                    icon={faSpinner}
+                    className="text-[30px] mt-[5px] text-[#555] hover:text-[#0b3a82] motion-preset-spin "
+                />
+            </div>
+        );
     }
 
     const showModal = () => {
@@ -544,7 +567,11 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
             <div className="flex">
                 <div className="w-3/4 video-container-learn course-detail-page">
                     {/* YouTube Player */}
-                    <div id="video-player" className="w-full h-[686px]"></div>
+                    {selectedLesson.type === 'question' ? (
+                        <Quiz quesList={selectedLesson.quesList} />
+                    ) : (
+                        <div id="video-player" className="w-full h-[686px]"></div>
+                    )}
                     <div className="w-full py-10 px-[100px]">
                         <h1 className="text-3xl font-bold mb-2">{selectedLesson.name}</h1>
                         {selectedLesson.createdAt && (
@@ -930,12 +957,18 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                                         icon={faCompactDisc}
                                                         className="mr-2 text-[14px] text-[#1261a6]"
                                                     />
-                                                ) : (
+                                                ) : lesson.type === 'video' ? (
                                                     <FontAwesomeIcon
                                                         icon={faCirclePlay}
                                                         className="mr-2 text-[14px] text-[#666]"
                                                     />
-                                                )}
+                                                ) : lesson.type === 'question' ? (
+                                                    <FontAwesomeIcon
+                                                        icon={faFileLines}
+                                                        className="mr-2 text-[14px] text-[#666]"
+                                                    />
+                                                ) : null}
+
                                                 <span className="text-[14px]">{lesson.duration || '00:00:00'} </span>
                                             </div>
                                         </div>

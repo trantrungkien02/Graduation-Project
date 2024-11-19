@@ -402,6 +402,24 @@ export const registerLesson = async (lesson: any, dispatch: Dispatch) => {
     }
 };
 
+export const registerPractice = async (lesson: any, dispatch: Dispatch) => {
+    dispatch(registerLessonStart());
+    try {
+        const res = await axios.post('http://localhost:8000/v1/lesson/registerpractice', lesson);
+        dispatch(registerLessonSuccess());
+
+        return res.data;
+    } catch (err: any) {
+        if (err.response) {
+            console.log(err.response);
+            return err.response.data;
+        } else {
+            console.log(err);
+        }
+        dispatch(registerLessonFailed());
+    }
+};
+
 export const getLessonById = async (accessToken: string, lessonId: string, dispatch: Dispatch, axiosJWT: AxiosJWT) => {
     dispatch(getLessonsByIdStart());
     try {

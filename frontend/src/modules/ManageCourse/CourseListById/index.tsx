@@ -27,6 +27,7 @@ const CourseListById = () => {
     const [editingCourse, setEditingCourse] = useState<any>(null); // Trạng thái đang edit
     const [isModalVisible, setIsModalVisible] = useState(false); // Trạng thái modal
     const [isModalVisibleSl, setIsModalVisibleSl] = useState(false);
+    const [isModalVisibleCn, setIsModalVisibleCn] = useState(false);
     const [studentList, setStudentList] = useState<any[]>([]);
     const [form] = Form.useForm(); // Khởi tạo form từ Ant Design
     const [currentCourseList, setCurrentCourseList] = useState(courseList);
@@ -133,6 +134,40 @@ const CourseListById = () => {
         setIsModalVisibleSl(false);
         setStudentList([]);
     };
+    const handleCreateNotifyForStudent = async (courseId: any) => {
+        setIsModalVisibleCn(true);
+        const res = await getCourseById(user?.accessToken, courseId, dispatch, axiosJWT);
+        console.log(res);
+
+        form.setFieldsValue({ courseId: res?.slug }); // Gán trước courseId (ẩn trong form)
+    };
+
+    const handleCancelCn = () => {
+        setIsModalVisibleCn(false);
+        form.resetFields(); // Xóa dữ liệu trong form
+    };
+
+    const handleSubmitCn = async (values: any) => {
+        try {
+            // API gửi thông báo
+            console.log(values);
+            const notifyData = { ...values, userId: user?._id, userName: user?.username };
+            console.log(notifyData);
+            const response = await axiosJWT.post('http://localhost:8000/v1/notify/createforcourse', notifyData);
+
+            if (response.data) {
+                message.success('Thông báo đã được gửi thành công!');
+                setIsModalVisibleCn(false);
+                form.resetFields(); // Reset form sau khi gửi thành công
+            } else {
+                message.error('Gửi thông báo thất bại!');
+            }
+        } catch (error) {
+            console.error('Error sending notification:', error);
+            message.error('Có lỗi xảy ra, vui lòng thử lại!');
+        }
+    };
+
     // Ant Design Table columns configuration
     const columns = [
         {
@@ -146,7 +181,7 @@ const CourseListById = () => {
             title: 'Tên',
             dataIndex: 'name',
             key: 'name',
-            width: '35%',
+            width: '25%',
         },
         {
             title: 'Video Id',
@@ -201,9 +236,21 @@ const CourseListById = () => {
                     >
                         Xem ds học viên
                     </Button>
+                    <Button
+                        onClick={() => handleCreateNotifyForStudent(record._id)}
+                        style={{
+                            backgroundColor: '#0b3a82',
+                            borderColor: '#0b3a82',
+                            borderRadius: '5px',
+                            color: 'white',
+                            marginLeft: '20px',
+                        }}
+                    >
+                        Tạo thông báo
+                    </Button>
                 </>
             ),
-            width: '20%',
+            width: '30%',
         },
     ];
 
@@ -297,6 +344,36 @@ const CourseListById = () => {
                     ]}
                     rowKey="userId"
                 />
+            </Modal>
+            <Modal title="Tạo thông báo" visible={isModalVisibleCn} onCancel={handleCancelCn} footer={null}>
+                <Form form={form} onFinish={handleSubmitCn} layout="vertical">
+                    {/* Ẩn courseId */}
+                    <Form.Item name="courseId" hidden>
+                        <Input />
+                    </Form.Item>
+
+                    {/* Tiêu đề */}
+                    <Form.Item
+                        name="tittle"
+                        label="Tiêu đề"
+                        rules={[{ required: true, message: 'Vui lòng nhập tiêu đề thông báo!' }]}
+                    >
+                        <Input placeholder="Nhập tiêu đề thông báo" />
+                    </Form.Item>
+
+                    {/* Nội dung */}
+                    <Form.Item
+                        name="des"
+                        label="Nội dung"
+                        rules={[{ required: true, message: 'Vui lòng nhập nội dung thông báo!' }]}
+                    >
+                        <Input.TextArea rows={4} placeholder="Nhập nội dung thông báo" />
+                    </Form.Item>
+
+                    <Button type="primary" htmlType="submit" style={{ marginTop: '10px' }}>
+                        Gửi thông báo
+                    </Button>
+                </Form>
             </Modal>
         </div>
     );

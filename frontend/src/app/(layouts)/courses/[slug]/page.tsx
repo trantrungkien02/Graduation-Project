@@ -12,7 +12,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createAxios } from '~/app/createInstance';
 import { loginSuccess } from '~/redux/stateglobal/authSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGaugeHigh, faFilm, faClock, faBatteryFull, faCirclePlay } from '@fortawesome/free-solid-svg-icons';
+import {
+    faGaugeHigh,
+    faFilm,
+    faClock,
+    faBatteryFull,
+    faCirclePlay,
+    faSpinner,
+} from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/navigation';
 
 interface CourseDetailPageProps {
@@ -74,7 +81,14 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     }, [params.slug]);
 
     if (!course) {
-        return <div>Loading...</div>;
+        return (
+            <div className="loading-overlay">
+                <FontAwesomeIcon
+                    icon={faSpinner}
+                    className="text-[30px] mt-[5px] text-[#555] hover:text-[#0b3a82] motion-preset-spin "
+                />
+            </div>
+        );
     }
 
     const handleCourseClick = async (slug: string, courseId: string) => {

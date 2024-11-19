@@ -13,7 +13,7 @@ import {
 import type { MenuProps, RadioChangeEvent } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark, faBell, faQuestionCircle, faUser } from '@fortawesome/free-regular-svg-icons';
-
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { Button, Input, Dropdown, Space, Tabs, Empty, Menu, Radio, Badge, Modal, List, Avatar } from 'antd';
 import './index.scss';
 import { icons } from '~/assets/images/icons/icons';
@@ -212,6 +212,7 @@ function MainNavbar() {
         if (unreadCount <= 0) {
             // Nếu không có thông báo chưa đọc, chỉ cần hiển thị modal
             const selectedNotif = notifications.find((notif: any) => notif._id === notifyId);
+            console.log(selectedNotif);
             setSelectedNotification(selectedNotif || null);
             setIsModalOpen(true);
             return;
@@ -257,7 +258,12 @@ function MainNavbar() {
                 <Tabs.TabPane tab="Tất cả" key="1">
                     <div className="list-noti custom-scrollbar p-2 relative h-[300px] overflow-auto">
                         {loading ? (
-                            <div className="loading-overlay">Đang tải...</div>
+                            <div className="loading-overlay">
+                                <FontAwesomeIcon
+                                    icon={faSpinner}
+                                    className="text-[20px] mt-[5px] text-[#555] hover:text-[#0b3a82] motion-preset-spin "
+                                />
+                            </div>
                         ) : notifications?.length > 0 ? (
                             notifications
                                 .slice()
@@ -294,7 +300,8 @@ function MainNavbar() {
                         footer={null}
                         style={{ borderRadius: '16px' }}
                     >
-                        {selectedNotification?.type === 'comment' ? (
+                        {selectedNotification?.type === 'comment' ||
+                        selectedNotification?.type === 'course-notification' ? (
                             <div>
                                 <p>
                                     <strong>
@@ -318,11 +325,13 @@ function MainNavbar() {
                                 <div>
                                     Chuyển hướng đến:{' '}
                                     <strong
-                                        onClick={() =>
-                                            router.push(
-                                                `/learning/${selectedNotification.courseId}?id=${selectedNotification.lessonId}`,
-                                            )
-                                        }
+                                        onClick={() => {
+                                            selectedNotification?.type === 'comment'
+                                                ? router.push(
+                                                      `/learning/${selectedNotification.courseId}?id=${selectedNotification.lessonId}`,
+                                                  )
+                                                : router.push(`/learning/${selectedNotification.courseId}`);
+                                        }}
                                     >
                                         {selectedNotification?.courseId}
                                     </strong>
@@ -723,7 +732,7 @@ function MainNavbar() {
                             <Badge count={unreadCount} overflowCount={99} offset={[3, 0]}>
                                 <FontAwesomeIcon
                                     icon={faBell}
-                                    className="text-[22px] mt-[5px] text-[#555] hover:text-[#0b3a82]"
+                                    className={`text-[22px] mt-[5px] text-[#555] hover:text-[#0b3a82] ${unreadCount > 0 ? 'motion-preset-seesaw' : ''}`}
                                 />
                             </Badge>
                         </Space>

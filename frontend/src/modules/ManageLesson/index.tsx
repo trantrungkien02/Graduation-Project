@@ -14,8 +14,19 @@ import {
     registerLesson,
     getLessonById,
     deleteLesson,
+    registerPractice,
 } from '~/redux/stateglobal/apiRequest';
 
+interface Question {
+    quesName: string;
+    a: string;
+    b: string;
+    c: string;
+    d: string;
+    quesCorrect: string;
+    explanation: string;
+    [key: string]: string;
+}
 const LessonList = () => {
     const user = useSelector((state: any) => state.auth.login?.currentUser);
     const courseList = useSelector((state: any) => state.course.courses?.allCoursesById ?? []);
@@ -32,7 +43,20 @@ const LessonList = () => {
     const [form] = Form.useForm();
     const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null); // State to store selected course ID
     const [currentLessonList, setCurrentLessonList] = useState(lessonList); // Store current lessons
-
+    const [practiceName, setPracticeName] = useState('');
+    const [isModalVisiblePt, setIsModalVisiblePt] = useState(false);
+    const [isEditPractice, setIsEditPractice] = useState(false);
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [currentQuestion, setCurrentQuestion] = useState<Question>({
+        quesName: '',
+        a: '',
+        b: '',
+        c: '',
+        d: '',
+        quesCorrect: '',
+        explanation: '',
+    });
     useEffect(() => {
         if (!user) {
             router.push('/login');
@@ -71,10 +95,21 @@ const LessonList = () => {
 
     const handleEdit = async (lessonId: string) => {
         const lessonData = await getLessonById(user?.accessToken, lessonId, dispatch, axiosJWT);
-        console.log(lessonList);
-        setEditingLesson(lessonData); // Editing lesson, not course
-        form.setFieldsValue(lessonData);
-        setIsModalVisible(true);
+
+        if (lessonData.type === 'video') {
+            setEditingLesson(lessonData);
+            form.setFieldsValue(lessonData); // Gán dữ liệu video vào form
+            setIsModalVisible(true); // Hiển thị modal dành cho bài học dạng video
+        } else if (lessonData.type === 'question') {
+            console.log(lessonData);
+            setEditingLesson(lessonData);
+            setIsEditPractice(true);
+            setPracticeName(lessonData.name || ''); // Gán tên bài thực hành (nếu có)
+            setQuestions(lessonData.quesList || []); // Gán danh sách câu hỏi
+            setCurrentIndex(0); // Đặt về câu hỏi đầu tiên
+            setCurrentQuestion(lessonData.quesList?.[0] || {}); // Gán dữ liệu cho câu hỏi đầu tiên
+            setIsModalVisiblePt(true); // Hiển thị modal dành cho câu hỏi
+        }
     };
 
     const handleSaveEdit = async () => {
@@ -83,12 +118,39 @@ const LessonList = () => {
             return;
         }
         try {
-            const values = form.getFieldsValue();
-            await updateLesson(user?.accessToken, dispatch, { ...editingLesson, ...values }, axiosJWT); // Update lesson API
-            message.success('Thông tin bài giảng đã được cập nhật thành công!');
-            setIsModalVisible(false);
-            const updatedLessons = await getLessonBycourseId(user?.accessToken, selectedCourseId, dispatch, axiosJWT);
-            setCurrentLessonList(updatedLessons);
+            if (editingLesson.type === 'video') {
+                const values = form.getFieldsValue();
+                await updateLesson(user?.accessToken, dispatch, { ...editingLesson, ...values }, axiosJWT); // Update lesson API
+                message.success('Thông tin bài giảng đã được cập nhật thành công!');
+                setIsModalVisible(false);
+                const updatedLessons = await getLessonBycourseId(
+                    user?.accessToken,
+                    selectedCourseId,
+                    dispatch,
+                    axiosJWT,
+                );
+                setCurrentLessonList(updatedLessons);
+            } else if (editingLesson.type === 'question') {
+                const lessonPractice = {
+                    _id: editingLesson._id,
+                    quesList: questions,
+                    name: practiceName,
+                    courseId: selectedCourseId,
+                    userId: user?._id,
+                    userName: user?.username,
+                };
+                console.log(lessonPractice);
+                await updateLesson(user?.accessToken, dispatch, lessonPractice, axiosJWT); // Update lesson API
+                message.success('Thông tin bài thực hành đã được cập nhật thành công!');
+                setIsModalVisiblePt(false);
+                const updatedLessons = await getLessonBycourseId(
+                    user?.accessToken,
+                    selectedCourseId,
+                    dispatch,
+                    axiosJWT,
+                );
+                setCurrentLessonList(updatedLessons);
+            }
         } catch (error) {
             console.error('Cập nhật bài giảng thất bại:', error);
         }
@@ -105,7 +167,7 @@ const LessonList = () => {
             return;
         }
         try {
-            const lessonData = { ...values, courseId: selectedCourseId };
+            const lessonData = { ...values, courseId: selectedCourseId, userId: user?._id, userName: user?.username };
             const resultLesson = await registerLesson(lessonData, dispatch);
             if (resultLesson === 'Lesson name and courseId combination already exists') {
                 message.success('Bài giảng đã tồn tại!');
@@ -119,7 +181,80 @@ const LessonList = () => {
             console.error('Thêm bài giảng thất bại:', error);
         }
     };
+    useEffect(() => {
+        if (currentIndex >= 0 && currentIndex < questions.length) {
+            setCurrentQuestion(questions[currentIndex]); // Hiển thị câu hỏi cũ
+        } else {
+            setCurrentQuestion({
+                quesName: '',
+                a: '',
+                b: '',
+                c: '',
+                d: '',
+                quesCorrect: '',
+                explanation: '',
+            }); // Form trống để thêm câu hỏi mới
+        }
+    }, [currentIndex, questions]);
 
+    // Xử lý thêm/sửa câu hỏi
+    const handleUpdateCurrentQuestion = () => {
+        if (currentIndex >= 0 && currentIndex < questions.length) {
+            // Cập nhật câu hỏi cũ
+            const updatedQuestions = [...questions];
+            updatedQuestions[currentIndex] = currentQuestion;
+            setQuestions(updatedQuestions);
+            message.success(` Cập nhật câu hỏi số ${currentIndex + 1} thành công`);
+        } else {
+            // Thêm câu hỏi mới
+            setQuestions([...questions, currentQuestion]);
+            setCurrentIndex(questions.length); // Di chuyển đến câu hỏi vừa thêm
+            message.success(` Đã thêm thành công ${questions.length + 1} câu hỏi`);
+        }
+    };
+
+    // Xử lý lưu danh sách câu hỏi
+    const handleSavePractice = async () => {
+        if (questions.length === 0) {
+            message.error('Bạn chưa thêm câu hỏi nào!');
+            return;
+        }
+        if (!selectedCourseId) {
+            message.error('Vui lòng chọn một khóa học trước khi thêm bài giảng!');
+            return;
+        }
+        try {
+            console.log(questions);
+            const lessonPractice = {
+                quesList: questions,
+                name: practiceName,
+                courseId: selectedCourseId,
+                userId: user?._id,
+                userName: user?.username,
+            };
+            console.log(lessonPractice);
+            await registerPractice(lessonPractice, dispatch);
+            message.success('Thêm bài thực hành thành công!');
+            setQuestions([]);
+            setCurrentIndex(0);
+            setIsModalVisiblePt(false);
+            const updatedLessons = await getLessonBycourseId(user?.accessToken, selectedCourseId, dispatch, axiosJWT);
+            setCurrentLessonList(updatedLessons);
+        } catch (err) {
+            message.error('Có lỗi xảy ra khi thêm bài thực hành!');
+        }
+    };
+    const handlePrevious = () => {
+        console.log(currentIndex, questions[currentIndex]);
+        setCurrentIndex((prev) => prev - 1);
+    };
+
+    // Xử lý chuyển sang câu hỏi tiếp theo
+    const handleNext = () => {
+        console.log(currentIndex, questions[currentIndex]);
+        setCurrentIndex((prev) => prev + 1);
+        console.log(currentIndex);
+    };
     const columns = [
         {
             title: 'STT',
@@ -189,11 +324,15 @@ const LessonList = () => {
                     onChange={(courseId) => handleCourseSelect(courseId)}
                     style={{ width: '90%', borderRadius: '20px' }}
                 >
-                    {courseList.map((course: any) => (
-                        <Select.Option key={course._id} value={course._id}>
-                            {course.name}
-                        </Select.Option>
-                    ))}
+                    {courseList.length > 0 ? (
+                        courseList.map((course: any) => (
+                            <Select.Option key={course._id} value={course._id}>
+                                {course.name}
+                            </Select.Option>
+                        ))
+                    ) : (
+                        <div>Bạn chưa có khóa học nào</div>
+                    )}
                 </Select>
             </Input.Group>
 
@@ -209,6 +348,16 @@ const LessonList = () => {
             {selectedCourseId && (
                 <Button type="primary" onClick={() => setIsAddModalVisible(true)} style={{ marginBottom: '20px' }}>
                     Thêm bài giảng
+                </Button>
+            )}
+
+            {selectedCourseId && (
+                <Button
+                    type="primary"
+                    onClick={() => setIsModalVisiblePt(true)}
+                    style={{ marginBottom: '20px', marginLeft: '20px' }}
+                >
+                    Thêm bài thực hành
                 </Button>
             )}
 
@@ -268,6 +417,92 @@ const LessonList = () => {
                     </Form.Item>
                     <Form.Item label="Thảo luận" name="discuss">
                         <Input />
+                    </Form.Item>
+                </Form>
+            </Modal>
+            <Modal
+                title="Thêm bài thực hành"
+                visible={isModalVisiblePt}
+                onCancel={() => {
+                    setIsModalVisiblePt(false);
+                    setIsEditPractice(false);
+                }}
+                footer={[
+                    <Button key="cancel" onClick={() => setIsModalVisiblePt(false)}>
+                        Hủy
+                    </Button>,
+                    <Button key="back" onClick={handlePrevious} disabled={currentIndex <= 0}>
+                        Quay lại
+                    </Button>,
+                    <Button key="next" onClick={handleNext} disabled={currentIndex > questions.length - 1}>
+                        Tiếp theo
+                    </Button>,
+
+                    <Button key="save" type="primary" onClick={handleUpdateCurrentQuestion}>
+                        {currentIndex >= 0 && currentIndex < questions.length ? 'Cập nhật' : 'Thêm câu hỏi'}
+                    </Button>,
+                    <Button
+                        key="finalSave"
+                        type="primary"
+                        onClick={isEditPractice ? handleSaveEdit : handleSavePractice}
+                    >
+                        Lưu
+                    </Button>,
+                ]}
+                centered
+            >
+                <Form layout="vertical">
+                    <Form.Item label="Tên bài thực hành">
+                        <Input value={practiceName} onChange={(e) => setPracticeName(e.target.value)} />
+                    </Form.Item>
+                    <div className="font-bold mb-2">{`Câu hỏi số ${currentIndex + 1}`}</div>
+                    <Form.Item label="Nội dung câu hỏi">
+                        <Input
+                            value={currentQuestion.quesName}
+                            onChange={(e) => setCurrentQuestion({ ...currentQuestion, quesName: e.target.value })}
+                        />
+                    </Form.Item>
+                    <Form.Item label="Đáp án A">
+                        <Input
+                            value={currentQuestion.a}
+                            onChange={(e) => setCurrentQuestion({ ...currentQuestion, a: e.target.value })}
+                        />
+                    </Form.Item>
+                    <Form.Item label="Đáp án B">
+                        <Input
+                            value={currentQuestion.b}
+                            onChange={(e) => setCurrentQuestion({ ...currentQuestion, b: e.target.value })}
+                        />
+                    </Form.Item>
+                    <Form.Item label="Đáp án C">
+                        <Input
+                            value={currentQuestion.c}
+                            onChange={(e) => setCurrentQuestion({ ...currentQuestion, c: e.target.value })}
+                        />
+                    </Form.Item>
+                    <Form.Item label="Đáp án D">
+                        <Input
+                            value={currentQuestion.d}
+                            onChange={(e) => setCurrentQuestion({ ...currentQuestion, d: e.target.value })}
+                        />
+                    </Form.Item>
+                    <Form.Item label="Đáp án đúng">
+                        <Select
+                            value={currentQuestion.quesCorrect}
+                            onChange={(value) => setCurrentQuestion({ ...currentQuestion, quesCorrect: value })}
+                        >
+                            <Select.Option value="a">A</Select.Option>
+                            <Select.Option value="b">B</Select.Option>
+                            <Select.Option value="c">C</Select.Option>
+                            <Select.Option value="d">D</Select.Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item label="Giải thích đáp án đúng">
+                        <Input
+                            value={currentQuestion.explanation}
+                            onChange={(e) => setCurrentQuestion({ ...currentQuestion, explanation: e.target.value })}
+                        />
                     </Form.Item>
                 </Form>
             </Modal>

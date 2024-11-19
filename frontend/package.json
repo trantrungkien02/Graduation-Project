@@ -46,7 +46,8 @@
         "redux-persist": "^6.0.0",
         "sass": "^1.77.6",
         "slick-carousel": "^1.8.1",
-        "styled-components": "^6.1.12"
+        "styled-components": "^6.1.12",
+        "tailwindcss-motion": "^0.4.3-beta"
     },
     "devDependencies": {
         "@types/js-cookie": "^3.0.6",

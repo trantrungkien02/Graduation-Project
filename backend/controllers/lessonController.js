@@ -1,4 +1,7 @@
 const Lesson = require('../models/Lesson');
+const Notification = require('../models/Notification');
+const Course = require('../models/Course');
+
 async function getVideoDuration(videoId) {
   const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`;
   try {
@@ -47,10 +50,11 @@ function convertDuration(duration) {
 const lessonController = {
   registerLesson: async (req, res) => {
     try {
+      const { name, courseId, videoId, discuss, userId, userName } = req.body;
       // Check if both lesson name and courseId already exist together
       const existingLesson = await Lesson.findOne({
-        name: req.body.name,
-        courseId: req.body.courseId,
+        name: name,
+        courseId: courseId,
       });
 
       if (existingLesson) {
@@ -58,20 +62,87 @@ const lessonController = {
       }
 
       // Get video duration
-      const duration = await getVideoDuration(req.body.videoId);
+      const duration = await getVideoDuration(videoId);
 
       // Create new lesson
       const newLesson = new Lesson({
-        name: req.body.name,
-        courseId: req.body.courseId,
-        videoId: req.body.videoId,
-        discuss: req.body.discuss,
+        name: name,
+        courseId: courseId,
+        videoId: videoId,
+        discuss: discuss,
         duration: convertDuration(duration), // Lưu thời lượng video
       });
-
-      // Save lesson to DB
       const lesson = await newLesson.save();
+
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return res.status(404).json({ message: 'Không tìm thấy khóa học.' });
+      }
+
+      // Tạo thông báo chung cho tất cả người dùng đã đăng ký khóa học
+      const notification = new Notification({
+        senderId: userId, // ID giảng viên
+        senderName: userName, // Tên giảng viên
+        receiverId: '', // Rỗng vì thông báo dành cho nhiều người
+        tittle: `Bài giảng mới trong khóa học ${course.name}`,
+        des: `Bài giảng "${name}" đã được thêm vào khóa học mà bạn đã đăng ký.`,
+        courseId: course.slug,
+        lessonId: lesson._id,
+        type: 'lesson', // Loại thông báo là bài giảng
+      });
+
+      await notification.save();
+      // Save lesson to DB
       res.status(200).json(lesson);
+    } catch (err) {
+      console.log(err);
+      res.status(500).json(err);
+    }
+  },
+  registerPractice: async (req, res) => {
+    try {
+      const { name, courseId, quesList, userId, userName } = req.body;
+
+      // Check if both lesson name and courseId already exist together
+      const existingLesson = await Lesson.findOne({
+        name: name,
+        courseId: courseId,
+      });
+
+      if (existingLesson) {
+        return res.status(400).json('Practice name and courseId combination already exists');
+      }
+
+      // Create new practice lesson
+      const newPractice = new Lesson({
+        name: name,
+        courseId: courseId,
+        quesList: quesList, // Danh sách câu hỏi
+        type: 'question', // Gán loại bài học là bài thực hành
+      });
+
+      const practice = await newPractice.save();
+
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return res.status(404).json({ message: 'Không tìm thấy khóa học.' });
+      }
+
+      // Tạo thông báo chung cho tất cả người dùng đã đăng ký khóa học
+      const notification = new Notification({
+        senderId: userId, // ID giảng viên
+        senderName: userName, // Tên giảng viên
+        receiverId: '', // Rỗng vì thông báo dành cho nhiều người
+        tittle: `Bài thực hành mới trong khóa học ${course.name}`,
+        des: `Bài thực hành "${name}" đã được thêm vào khóa học mà bạn đã đăng ký.`,
+        courseId: course.slug,
+        lessonId: practice._id,
+        type: 'practice', // Loại thông báo là bài thực hành
+      });
+
+      await notification.save();
+
+      res.status(200).json(practice);
     } catch (err) {
       console.log(err);
       res.status(500).json(err);
@@ -149,6 +220,30 @@ const lessonController = {
       return res.status(500).json(err);
     }
   },
+  updatePractice: async (req, res) => {
+    const { id } = req.params; // Lấy id từ params
+    const updatedData = req.body; // Lấy dữ liệu cập nhật từ body
+
+    try {
+      // Tìm bài thực hành theo id và cập nhật thông tin
+      const updatedPractice = await Practice.findByIdAndUpdate(id, updatedData, {
+        new: true,
+        runValidators: true,
+      });
+
+      // Nếu không tìm thấy bài thực hành, trả về lỗi
+      if (!updatedPractice) {
+        return res.status(404).json({ message: 'Bài thực hành không tồn tại' });
+      }
+
+      // Trả về bài thực hành đã cập nhật
+      return res.status(200).json(updatedPractice);
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ message: 'Lỗi server', error: err });
+    }
+  },
+
   deleteLesson: async (req, res) => {
     const lessonId = req.params.id;
 

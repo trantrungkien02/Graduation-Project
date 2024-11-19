@@ -26,6 +26,6 @@ const config: Config = {
             sm: '576px',
         },
     },
-    plugins: [],
+    plugins: [require('tailwindcss-motion')],
 };
 export default config;

@@ -1,4 +1,6 @@
 const Notification = require('../models/Notification');
+const User = require('../models/User');
+const Course = require('../models/Course');
 
 const notifyController = {
   createNotification: async (req, res) => {
@@ -26,12 +28,55 @@ const notifyController = {
     }
   },
 
+  createNotificationForCourse: async (req, res) => {
+    try {
+      const { courseId, userId, userName, tittle, des } = req.body;
+
+      // Tìm khóa học
+      const course = await Course.findOne({ slug: courseId });
+      if (!course) {
+        return res.status(404).json({ message: 'Không tìm thấy khóa học.' });
+      }
+
+      // Tạo thông báo chung cho tất cả người dùng đã đăng ký khóa học
+      const notification = new Notification({
+        senderId: userId, // ID giảng viên
+        senderName: userName, // Tên giảng viên
+        receiverId: '', // Rỗng vì thông báo dành cho nhiều người
+        tittle: tittle || `Thông báo mới từ khóa học ${course.name}`,
+        des: des || `Một thông báo mới liên quan đến khóa học "${course.name}" của bạn.`,
+        courseId: course.slug,
+        type: 'course-notification', // Loại thông báo
+      });
+
+      // Lưu thông báo vào DB
+      await notification.save();
+
+      res.status(200).json({ message: 'Tạo thông báo thành công.', notification });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Lỗi khi tạo thông báo.', error: err });
+    }
+  },
   getNotificationsByReceiverId: async (req, res) => {
     try {
       const { receiverId, role } = req.params;
 
-      // Điều kiện cơ bản
-      const conditions = [{ receiverId }, { isGlobal: true }];
+      // Tìm user theo receiverId
+      const user = await User.findById(receiverId).select('registeredCourses');
+      if (!user) {
+        return res.status(404).json({ message: 'Người dùng không tồn tại.' });
+      }
+
+      // Lấy danh sách courseId từ registeredCourses
+      const registeredCourseIds = user.registeredCourses.map(course => course.courseSlug);
+
+      // Điều kiện cơ bản cho thông báo
+      const conditions = [
+        { receiverId }, // Thông báo dành riêng cho người dùng
+        { isGlobal: true }, // Thông báo toàn hệ thống
+        { courseId: { $in: registeredCourseIds } }, // Thông báo liên quan đến các khóa học đã đăng ký
+      ];
 
       // Thêm điều kiện dựa vào role
       if (role === '1') {
@@ -40,6 +85,7 @@ const notifyController = {
         conditions.push({ role: 2 });
       }
 
+      // Tìm thông báo
       const notifications = await Notification.find({
         $or: conditions,
       }).sort({ createdAt: -1 }); // Sắp xếp từ mới nhất đến cũ nhất
@@ -47,7 +93,7 @@ const notifyController = {
       res.status(200).json(notifications);
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: 'Error retrieving notifications', error: err });
+      res.status(500).json({ message: 'Lỗi khi lấy thông báo', error: err.message });
     }
   },
 
@@ -114,23 +160,37 @@ const notifyController = {
     try {
       const { receiverId, role } = req.params;
 
-      // Điều kiện truy vấn
-      const conditions = [{ receiverId }, { isGlobal: true }];
+      // Tìm user theo receiverId
+      const user = await User.findById(receiverId).select('registeredCourses');
+      if (!user) {
+        return res.status(404).json({ message: 'Người dùng không tồn tại.' });
+      }
 
+      // Lấy danh sách courseId từ registeredCourses
+      const registeredCourseIds = user.registeredCourses.map(course => course.courseId);
+
+      // Điều kiện truy vấn thông báo
+      const conditions = [
+        { receiverId }, // Thông báo dành riêng cho người dùng
+        { isGlobal: true }, // Thông báo toàn hệ thống
+        { courseId: { $in: registeredCourseIds } }, // Thông báo liên quan đến khóa học đã đăng ký
+      ];
+
+      // Thêm điều kiện dựa vào role
       if (role === '1') {
         conditions.push({ role: 1 });
       } else if (role === '2') {
         conditions.push({ role: 2 });
       }
 
-      // Cập nhật chỉ cho người dùng hiện tại
+      // Cập nhật thông báo chưa đọc
       await Notification.updateMany(
         { $or: conditions, readBy: { $ne: receiverId } }, // Loại trừ thông báo đã được đọc bởi người dùng
         { $addToSet: { readBy: receiverId } }, // Thêm người dùng vào danh sách đã đọc
       );
 
       // Truy vấn lại danh sách thông báo
-      const notifications = await Notification.find({ $or: conditions });
+      const notifications = await Notification.find({ $or: conditions }).sort({ createdAt: -1 });
 
       res.status(200).json(notifications);
     } catch (err) {

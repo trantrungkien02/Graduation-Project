@@ -1,0 +1,162 @@
+.quiz-container {
+    width: 600px;
+    margin: 20px auto;
+    font-family: Arial, sans-serif;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    background: #f9f9f9;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header p {
+    font-size: 16px;
+    color: #333;
+}
+
+.question {
+    margin-bottom: 20px;
+}
+
+.question h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.answer-button {
+    padding: 10px 15px;
+    font-size: 16px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.3s;
+}
+
+.answer-button:hover {
+    background: #e8e8e8;
+}
+
+.answer-button.selected {
+    background: #4caf50;
+    color: #fff;
+    border-color: #4caf50;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-button {
+    padding: 8px 15px;
+    font-size: 14px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.nav-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.pagination {
+    display: flex;
+    gap: 5px;
+}
+
+.page-button {
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+}
+
+.page-button.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.submit {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.submit button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.selected {
+    background-color: #d1f7d1; /* Màu xanh khi lựa chọn */
+}
+
+.correct {
+    background-color: #4caf50; /* Màu xanh khi đáp án đúng */
+}
+
+.incorrect {
+    background-color: #f44336; /* Màu đỏ khi đáp án sai */
+}
+
+.page-button.answered {
+    background-color: #d1f7d1; /* Màu khi câu hỏi đã được trả lời */
+}
+.reset button {
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    color: #333;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.reset button:hover {
+    background-color: #e0e0e0;
+}
+.explanations {
+    margin-top: 20px;
+    font-size: 16px;
+    color: #333;
+}
+
+.explanation-item {
+    margin-bottom: 10px;
+}
+
+.explanation-item .question-name {
+    font-weight: bold;
+}
+
+.explanation-item .explanation {
+    margin-top: 5px;
+    font-style: italic;
+    color: #555;
+}
