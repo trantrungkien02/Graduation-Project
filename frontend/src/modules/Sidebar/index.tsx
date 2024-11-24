@@ -6,7 +6,7 @@ import './index.scss';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faRoad, faBook, faPlus, faUserGroup, faGear } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faRoad, faBook, faPlus, faUserGroup, faGear, faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -21,7 +21,7 @@ function getItem(label: React.ReactNode, key: React.Key, icon?: React.ReactNode)
 function Sidebar() {
     const [selectedKey, setSelectedKey] = useState<string>('1');
     const user = useSelector((state: any) => state.auth.login?.currentUser);
-
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const items: MenuProps['items'] = [
         getItem(
             <Link href="/" className="flex flex-col items-center justify-center">
@@ -88,20 +88,29 @@ function Sidebar() {
         );
     }
     const handleMenuClick: MenuProps['onClick'] = (e) => {
+        setIsLoading(true);
         setSelectedKey(e.key);
+        setIsLoading(false);
     };
 
     return (
         <div className={`sidebar sidebar-custom relative`}>
             <div className="sidebar-detail__wrap">
                 <div className="sidebar-detail">
-                    <Menu
-                        onClick={handleMenuClick}
-                        style={{ width: 96 }}
-                        selectedKeys={[selectedKey]}
-                        mode="inline"
-                        items={items}
-                    />
+                    {isLoading ? (
+                        <FontAwesomeIcon
+                            icon={faSpinner}
+                            className="text-[30px] mt-[5px] text-[#555] hover:text-[#0b3a82] motion-preset-spin "
+                        />
+                    ) : (
+                        <Menu
+                            onClick={handleMenuClick}
+                            style={{ width: 96 }}
+                            selectedKeys={[selectedKey]}
+                            mode="inline"
+                            items={items}
+                        />
+                    )}
                 </div>
             </div>
         </div>

@@ -10,6 +10,8 @@ const courseRoute = require('./routes/course');
 const lessonRoute = require('./routes/lesson');
 const commentRoute = require('./routes/comment');
 const notifyRoute = require('./routes/notify');
+const bannerRoute = require('./routes/banner');
+
 dotenv.config();
 
 // mongoose.connect(process.env.MONGODB_URL, () => {
@@ -41,6 +43,7 @@ app.use('/v1/course', courseRoute);
 app.use('/v1/lesson', lessonRoute);
 app.use('/v1/comment', commentRoute);
 app.use('/v1/notify', notifyRoute);
+app.use('/v1/banner', bannerRoute);
 
 app.listen(8000, () => {
   console.log('Server is running');

@@ -15,6 +15,7 @@ const courseController = {
       // Create new course
       const newCourse = new Course({
         userId: req.body.userId,
+        userName: req.body.userName,
         name: req.body.name,
         des: req.body.des,
         image: req.body.image,
@@ -34,10 +35,22 @@ const courseController = {
 
   getAllCourses: async (req, res) => {
     try {
-      const courses = await Course.find();
+      // Tìm các khóa học có isPublic là true
+      const courses = await Course.find({ isPublic: true });
       res.status(200).json(courses);
     } catch (err) {
-      res.status(500).json(err);
+      console.error(err); // Log lỗi để tiện debug
+      res.status(500).json({ message: 'Lỗi khi lấy danh sách khóa học', error: err });
+    }
+  },
+  getAllCoursesPrivate: async (req, res) => {
+    try {
+      // Tìm các khóa học có isPublic là true
+      const courses = await Course.find({ isPublic: false });
+      res.status(200).json(courses);
+    } catch (err) {
+      console.error(err); // Log lỗi để tiện debug
+      res.status(500).json({ message: 'Lỗi khi lấy danh sách khóa học', error: err });
     }
   },
   getAllCoursesByIdUser: async (req, res) => {
@@ -123,12 +136,13 @@ const courseController = {
     try {
       // Nếu không có query tìm kiếm, trả về tất cả các khóa học
       if (!q) {
-        const courses = await Course.find(); // Trả về tất cả các khóa học
+        const courses = await Course.find({ isPublic: true }); // Trả về tất cả các khóa học
         return res.status(200).json(courses);
       }
 
       // Tìm kiếm mặc định theo name và des
       const courses = await Course.find({
+        isPublic: true,
         $or: [
           { name: { $regex: q, $options: 'i' } }, // Tìm kiếm theo name (không phân biệt hoa thường)
           { des: { $regex: q, $options: 'i' } }, // Tìm kiếm theo des (không phân biệt hoa thường)
@@ -141,6 +155,34 @@ const courseController = {
       res.status(500).json({ message: 'Error searching courses', error: err });
     }
   },
+  searchCoursesForAdmin: async (req, res) => {
+    const { q, field } = req.query; // Lấy tham số tìm kiếm từ query
+
+    try {
+      // Nếu không có query tìm kiếm, trả về tất cả các khóa học (isPublic: false)
+      if (!q) {
+        const courses = await Course.find({ isPublic: false }); // Trả về tất cả các khóa học
+        return res.status(200).json(courses);
+      }
+
+      // Kiểm tra nếu field không được chỉ định hoặc không hợp lệ
+      if (!field || typeof field !== 'string') {
+        return res.status(400).json({ message: 'Invalid field parameter' });
+      }
+
+      // Tìm kiếm theo trường và giá trị
+      const courses = await Course.find({
+        isPublic: false, // Lọc theo isPublic: false
+        [field]: { $regex: q, $options: 'i' }, // Tìm kiếm theo trường field và giá trị q
+      });
+
+      return res.status(200).json(courses);
+    } catch (err) {
+      console.error('Error searching courses:', err);
+      res.status(500).json({ message: 'Error searching courses', error: err });
+    }
+  },
+
   updateCourse: async (req, res) => {
     const { id } = req.params; // Lấy id từ params
     const updatedData = req.body; // Lấy dữ liệu cập nhật từ body

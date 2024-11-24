@@ -107,7 +107,8 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const user = useSelector((state: any) => state.auth.login?.currentUser);
     const [valueQuill, setValueQuill] = useState('');
     const [valueQuillRecomment, setValueQuillRecomment] = useState('');
-
+    const [isQuizPassed, setIsQuizPassed] = useState(false);
+    const [videoEnded, setVideoEnded] = useState(false);
     const [isQuill, setIsQuill] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isEditComment, setIsEditComment] = useState(false);
@@ -140,6 +141,15 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
             setActiveReplyId(replyId); // Nếu nhấn vào phản hồi khác, hiển thị ReactQuill ở đó
         }
     };
+    const handleQuizComplete = (isPassed: boolean) => {
+        setIsQuizPassed(isPassed);
+    };
+    useEffect(() => {
+        if (isQuizPassed || videoEnded) {
+            unlockNextLesson(); // Mở khóa bài học tiếp theo
+        }
+    }, [isQuizPassed, videoEnded]);
+
     const [comments, setComments] = useState([]);
     const fetchComments = async (lessonId: any) => {
         try {
@@ -220,58 +230,57 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
 
     const onPlayerStateChange = async (event: any) => {
         if (event.data === window.YT.PlayerState.ENDED) {
-            console.log('Video has ended. Unlocking the next lesson...');
-            console.log(player);
-            // Lấy khóa học cần cập nhật từ registeredCourses
-            const currentCourse1 = user?.registeredCourses.find((currentCourse: any) => {
-                return currentCourse.courseId == course._id;
-            });
-            if (!currentCourse1) return;
-
-            const currentLessonsCompleted = currentCourse1.lessonsCompleted || 0;
-            const updatedLessonsCompleted = currentLessonsCompleted + 1;
-
-            // Kiểm tra nếu bài học cuối cùng được xem (mới mở khóa bài học tiếp theo)
-            console.log(currentLessonsCompleted, indexLesson);
-
-            if (currentLessonsCompleted == indexLesson) {
-                // Cập nhật số lượng bài học đã hoàn thành cho khóa học
-                const updatedRegisteredCourses = user?.registeredCourses.map((course: any) => {
-                    if (course.courseId === currentCourse1.courseId) {
-                        return {
-                            ...course,
-                            lessonsCompleted: updatedLessonsCompleted,
-                        };
-                    }
-                    return course;
-                });
-
-                // Gửi yêu cầu API để cập nhật người dùng với dữ liệu mới
-                const { accessToken, ...userWithoutToken } = user;
-
-                const updatedUser = {
-                    ...userWithoutToken,
-                    registeredCourses: updatedRegisteredCourses,
-                };
-
-                // Gửi yêu cầu API để cập nhật người dùng
-                const updatedUserData = await updateUser(updatedUser, dispatch);
-                await updateLessonCompleted(dispatch, course._id, user?._id, axiosJWT);
-                // Cập nhật lại người dùng trong Redux
-                dispatch(loginCourseForUserSuccess(updatedUserData));
-            }
-
-            // Mở khóa bài học tiếp theo nếu người dùng hoàn thành bài học cuối cùng
-            setLessons(
-                lessons.map((lesson, index) => {
-                    const updatedLesson = { ...lesson }; // Sao chép đối tượng lesson
-                    if (index <= updatedLessonsCompleted) {
-                        updatedLesson.locked = false; // Mở khóa bài học
-                    }
-                    return updatedLesson;
-                }),
-            );
+            setVideoEnded(true); // Đánh dấu video đã kết thúc
         }
+    };
+    const unlockNextLesson = async () => {
+        if (!user) return;
+
+        const currentCourse1 = user.registeredCourses.find((currentCourse: any) => {
+            return currentCourse.courseId == course._id;
+        });
+
+        if (!currentCourse1) return;
+
+        const currentLessonsCompleted = currentCourse1.lessonsCompleted || 0;
+        const updatedLessonsCompleted = currentLessonsCompleted + 1;
+        console.log(currentLessonsCompleted, indexLesson, updatedLessonsCompleted);
+        if (currentLessonsCompleted == indexLesson) {
+            console.log('đã chạy unlock');
+            const updatedRegisteredCourses = user.registeredCourses.map((course: any) => {
+                if (course.courseId === currentCourse1.courseId) {
+                    return {
+                        ...course,
+                        lessonsCompleted: updatedLessonsCompleted,
+                    };
+                }
+                return course;
+            });
+
+            const { accessToken, ...userWithoutToken } = user;
+
+            const updatedUser = {
+                ...userWithoutToken,
+                registeredCourses: updatedRegisteredCourses,
+            };
+
+            const updatedUserData = await updateUser(updatedUser, dispatch);
+            await updateLessonCompleted(dispatch, course._id, user?._id, axiosJWT);
+            dispatch(loginCourseForUserSuccess(updatedUserData));
+            setVideoEnded(false);
+            setIsQuizPassed(false);
+        }
+
+        setLessons(
+            lessons.map((lesson, index) => {
+                const updatedLesson = { ...lesson };
+                if (index <= updatedLessonsCompleted) {
+                    updatedLesson.locked = false;
+                }
+                return updatedLesson;
+            }),
+        );
+        console.log('đã chạy unlock');
     };
 
     const handleLessonClick = (lesson: Lesson, index: number) => {
@@ -286,6 +295,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
         });
         fetchComments(lesson._id);
         setIndexLesson(index);
+        console.log(index);
         const currentCourse = user?.registeredCourses.find((currentCourse: any) => {
             return currentCourse.courseId == course._id;
         });
@@ -568,7 +578,9 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                 <div className="w-3/4 video-container-learn course-detail-page">
                     {/* YouTube Player */}
                     {selectedLesson.type === 'question' ? (
-                        <Quiz quesList={selectedLesson.quesList} />
+                        <div>
+                            <Quiz quesList={selectedLesson.quesList} onQuizComplete={() => handleQuizComplete(true)} />
+                        </div>
                     ) : (
                         <div id="video-player" className="w-full h-[686px]"></div>
                     )}

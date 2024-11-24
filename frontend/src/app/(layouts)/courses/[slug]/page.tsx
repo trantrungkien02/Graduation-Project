@@ -1,6 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import {
+    approveCourse,
+    createNotify,
+    deleteCourse,
     fetchCourseBySlug,
     getCourseById,
     getLessonBycourseId,
@@ -19,8 +22,10 @@ import {
     faBatteryFull,
     faCirclePlay,
     faSpinner,
+    faUser,
 } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/navigation';
+import { Form, Input, Modal } from 'antd';
 
 interface CourseDetailPageProps {
     params: { slug: string };
@@ -42,7 +47,9 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const dispatch = useDispatch();
     const router = useRouter();
     let axiosJWT = createAxios(user, dispatch, loginSuccess);
-
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isModalVisibleRs, setIsModalVisibleRs] = useState(false);
+    const [form] = Form.useForm();
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -112,6 +119,61 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
         }
     };
 
+    const handleApproveClick = () => {
+        setIsModalVisible(true);
+    };
+    const handleConfirmApprove = async (courseData: any) => {
+        const updatedCourseData = { ...courseData, isPublic: true }; // Tạo bản sao và thay đổi giá trị isPublic
+
+        await approveCourse(user?.accessToken, dispatch, updatedCourseData, axiosJWT);
+        const notifyData = {
+            senderId: user?._id,
+            senderName: user?.username,
+            receiverId: courseData.userId,
+            tittle: `Khóa học ${courseData.name} của bạn đã được phê duyệt`,
+            type: 'system',
+            des: 'Admin đã xem xét khóa học của bạn.',
+            lessonId: '',
+            courseId: '',
+        };
+        await createNotify(notifyData, axiosJWT);
+        router.push('/system');
+        // Đóng modal sau khi phê duyệt
+        setIsModalVisible(false);
+    };
+    const handleRefuseClick = () => {
+        setIsModalVisibleRs(true);
+    };
+    const handleRefuseApprove = async (courseData: any, formData: { tittle: string; des: string }) => {
+        const notifyData = {
+            senderId: user?._id,
+            senderName: user?.username,
+            receiverId: courseData.userId,
+            tittle: formData.tittle, // Lấy từ form
+            type: 'system',
+            des: formData.des, // Lấy từ form
+            lessonId: '',
+            courseId: '',
+        };
+
+        // Gửi thông báo
+        await createNotify(notifyData, axiosJWT);
+        await deleteCourse(user?.accessToken, dispatch, courseData?._id, axiosJWT);
+
+        // Chuyển hướng sau khi xử lý xong
+        router.push('/system');
+
+        // Đóng modal
+        setIsModalVisibleRs(false);
+    };
+
+    // Hàm xử lý khi hủy phê duyệt
+    const handleCancel = () => {
+        setIsModalVisible(false); // Đóng modal nếu người dùng hủy
+    };
+    const handleCancelRs = () => {
+        setIsModalVisibleRs(false); // Đóng modal nếu người dùng hủy
+    };
     return (
         <div className="flex pr-[80px] pl-[40px] pt-[30px]">
             <div className="w-2/3 px-3">
@@ -159,10 +221,69 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                 ></iframe>
                 <div className="course-info">
                     <h2 className="course-pricing">{course.price === 'Miễn phí' ? 'Miễn phí' : `${course.price} đ`}</h2>
-                    <button className="register-button" onClick={() => handleCourseClick(course.slug, course._id)}>
-                        Đăng ký học
-                    </button>
+                    {user?.role === '3' && course.isPublic === false ? (
+                        <div className="flex">
+                            <button className="register-button" onClick={handleApproveClick}>
+                                Phê duyệt
+                            </button>
+                            <button className="register-button ml-3 !bg-red-600" onClick={handleRefuseClick}>
+                                Từ chối
+                            </button>
+                            <Modal
+                                title="Xác nhận phê duyệt"
+                                visible={isModalVisible}
+                                onOk={() => handleConfirmApprove(course)}
+                                onCancel={handleCancel}
+                                okText="Phê duyệt"
+                                cancelText="Hủy"
+                            >
+                                <p>Bạn có chắc chắn muốn phê duyệt khóa học này?</p>
+                            </Modal>
+                            <Modal
+                                title="Xác nhận từ chối phê duyệt"
+                                visible={isModalVisibleRs}
+                                onOk={() => {
+                                    form.validateFields()
+                                        .then((values) => {
+                                            form.resetFields();
+                                            handleRefuseApprove(course, values); // Truyền `tittle` và `des`
+                                        })
+                                        .catch((info) => {
+                                            console.log('Validate Failed:', info);
+                                        });
+                                }}
+                                onCancel={handleCancelRs}
+                                okText="Từ chối"
+                                cancelText="Hủy"
+                            >
+                                <Form form={form} layout="vertical">
+                                    <Form.Item
+                                        label="Tiêu đề"
+                                        name="tittle"
+                                        rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
+                                    >
+                                        <Input placeholder="Nhập tiêu đề" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="Mô tả"
+                                        name="des"
+                                        rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}
+                                    >
+                                        <Input.TextArea rows={4} placeholder="Nhập mô tả" />
+                                    </Form.Item>
+                                </Form>
+                            </Modal>
+                        </div>
+                    ) : (
+                        <button className="register-button" onClick={() => handleCourseClick(course.slug, course._id)}>
+                            Đăng ký học
+                        </button>
+                    )}
                     <ul className="course-details">
+                        <li className="flex items-center">
+                            <FontAwesomeIcon icon={faUser} className="mr-3 text-[18px] text-[#000]" />
+                            <span>Giảng viên hướng dẫn: &nbsp;{course.userName}</span>
+                        </li>
                         <li className="flex items-center">
                             <FontAwesomeIcon icon={faGaugeHigh} className="mr-3 text-[18px] text-[#000]" />
                             <span>Trình độ&nbsp;{course.level}</span>

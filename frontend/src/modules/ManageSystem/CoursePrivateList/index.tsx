@@ -12,15 +12,14 @@ import {
     updateCourse,
     getCourseById,
     getLessonBycourseId,
+    getAllCoursesPrivate,
 } from '~/redux/stateglobal/apiRequest';
 import { UploadOutlined } from '@ant-design/icons';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<any> }) => {
+const CoursePrivateList = () => {
     const user = useSelector((state: any) => state.auth.login?.currentUser);
-    const courseList = useSelector((state: any) => state.course.courses?.allCoursesById ?? []); // Ensure it's an array
-    const lessonList = useSelector((state: any) => state.lesson.lesson?.allLessonsById ?? []);
     const dispatch = useDispatch();
     const router = useRouter();
     let axiosJWT = createAxios(user, dispatch, loginSuccess);
@@ -33,19 +32,29 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
     const [isModalVisibleCn, setIsModalVisibleCn] = useState(false);
     const [studentList, setStudentList] = useState<any[]>([]);
     const [form] = Form.useForm(); // Khởi tạo form từ Ant Design
-    const [currentCourseList, setCurrentCourseList] = useState(courseList);
+    const [currentCourseList, setCurrentCourseList] = useState();
     const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imageUrlEdit, setImageUrlEdit] = useState<string>('');
     const [isUploading, setIsUploading] = useState(false); // State để theo dõi quá trình tải ảnh
 
     useEffect(() => {
-        if (!user) {
-            router.push('/login');
-        }
-        if (user?.accessToken) {
-            getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
-        }
+        const fetchCourses = async () => {
+            if (!user) {
+                router.push('/login');
+                return;
+            }
+            if (user?.accessToken) {
+                try {
+                    const res = await getAllCoursesPrivate(axiosJWT); // Chờ kết quả từ API
+                    setCurrentCourseList(res); // Cập nhật state sau khi nhận được dữ liệu
+                } catch (error) {
+                    console.error('Error fetching courses:', error);
+                }
+            }
+        };
+
+        fetchCourses(); // Gọi hàm async
     }, []);
 
     useEffect(() => {
@@ -54,17 +63,12 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
         }
         const timeout = setTimeout(async () => {
             if (searchText) {
-                const res = await searchCourses(
-                    user?.accessToken,
-                    dispatch,
-                    axiosJWT,
-                    searchField,
-                    searchText,
-                    user?._id,
+                const res = await axiosJWT.get(
+                    `http://localhost:8000/v1/course/searchforadmin?field=${searchField}&q=${searchText}`,
                 );
-                setCurrentCourseList(res);
+                setCurrentCourseList(res.data);
             } else {
-                const res = await getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
+                const res = await getAllCoursesPrivate(axiosJWT);
                 setCurrentCourseList(res);
             }
         }, 300);
@@ -73,6 +77,10 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
 
         return () => clearTimeout(timeout);
     }, [searchText, searchField]);
+
+    const handleViewCourse = (slug: any) => {
+        router.push(`/courses/${slug}`);
+    };
 
     const handleDelete = (id: any) => {
         Modal.confirm({
@@ -90,60 +98,10 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
         });
     };
 
-    const handleEdit = async (courseId: string) => {
-        const courseData = await getCourseById(user?.accessToken, courseId, dispatch, axiosJWT);
-        setEditingCourse(courseData); // Lưu dữ liệu khóa học đang chỉnh sửa
-        form.setFieldsValue(courseData); // Đặt giá trị form với dữ liệu từ API
-        setIsModalVisible(true); // Hiển thị modal
-    };
-
-    const handleSaveEdit = async () => {
-        try {
-            const values = form.getFieldsValue(); // Lấy giá trị từ form
-            if (imageFile) {
-                // Nếu người dùng upload ảnh mới, gửi ảnh lên server
-                const uploadResponse = await uploadImage(imageFile); // Truyền imageFile trực tiếp
-                values.image = uploadResponse.secure_url; // Lưu URL ảnh mới từ Cloudinary
-            }
-            await updateCourse(user?.accessToken, dispatch, { ...editingCourse, ...values }, axiosJWT);
-            message.success('Thông tin khóa học đã được cập nhật thành công!');
-            setIsModalVisible(false); // Ẩn modal
-            const updatedCourse = await getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
-            setCurrentCourseList(updatedCourse);
-        } catch (error) {
-            console.error('Cập nhật khóa học thất bại:', error);
-        }
-    };
-
     const handleCancelEdit = () => {
         setIsModalVisible(false);
         setImageUrlEdit('');
         getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
-    };
-
-    const handleViewStudents = async (courseId: string) => {
-        const res = await axiosJWT.get(`http://localhost:8000/v1/lesson/getlessonsbycourseid/` + courseId, {
-            headers: { token: `Bearer ${user?.accessToken}` },
-        });
-        console.log(res.data.length || 0);
-        if (res.data.message === 'Không tìm thấy bài học nào cho khóa học này.') {
-            message.error('Khóa học của bạn chưa đăng bài giảng nào.');
-            return;
-        }
-        const course = courseList.find((c: any) => c._id === courseId);
-        if (course) {
-            // Tạo bản sao của registeredUsers để không thay đổi trực tiếp đối tượng gốc
-            const updatedRegisteredUsers = course.registeredUsers.map((user: any) => {
-                return {
-                    ...user, // Giữ nguyên các thuộc tính của user
-                    courseLength: res.data.length, // Thêm thuộc tính courseLength
-                };
-            });
-
-            // Cập nhật lại studentList với mảng đã được chỉnh sửa
-            setStudentList(updatedRegisteredUsers);
-        }
-        setIsModalVisibleSl(true);
     };
 
     const handleCloseModal = () => {
@@ -217,6 +175,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             render: (text: any, record: any) => (
                 <>
                     <Button
+                        onClick={() => handleViewCourse(record.slug)}
                         style={{
                             backgroundColor: '#ffc107',
                             borderColor: '#ffc107',
@@ -224,9 +183,8 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
                             color: 'white',
                             marginLeft: '20px',
                         }}
-                        onClick={() => handleEdit(record._id)}
                     >
-                        Sửa
+                        Xem khóa học
                     </Button>
                     <Button
                         onClick={() => handleDelete(record._id)}
@@ -240,18 +198,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
                     >
                         Xóa
                     </Button>
-                    <Button
-                        onClick={() => handleViewStudents(record._id)}
-                        style={{
-                            backgroundColor: '#0b3a82',
-                            borderColor: '#0b3a82',
-                            borderRadius: '5px',
-                            color: 'white',
-                            marginLeft: '20px',
-                        }}
-                    >
-                        Xem ds học viên
-                    </Button>
+
                     <Button
                         onClick={() => handleCreateNotifyForStudent(record._id)}
                         style={{
@@ -296,63 +243,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             />
 
             {/* Modal for Editing */}
-            <Modal
-                title="Chỉnh sửa khóa học"
-                visible={isModalVisible}
-                onOk={handleSaveEdit}
-                onCancel={handleCancelEdit}
-                okText="Lưu"
-                cancelText="Hủy"
-                centered
-            >
-                <Form form={form} layout="vertical">
-                    <Form.Item label="Tên khóa học" name="name">
-                        <Input />
-                    </Form.Item>
-                    <Form.Item label="Mô tả khóa học" name="des">
-                        <Input />
-                    </Form.Item>
-                    <Form.Item label="Ảnh đại diện khóa học">
-                        <Image
-                            src={imageUrlEdit || form.getFieldValue('image')}
-                            alt="Ảnh đại diện khóa học"
-                            style={{ marginBottom: 10, width: '472px', height: 'auto', objectFit: 'contain' }}
-                        />
-                        <Upload
-                            beforeUpload={async (file) => {
-                                setImageFile(file); // Lưu ảnh vào state
-                                setIsUploading(true); // Set trạng thái đang upload
-                                const res = await uploadImage(file);
-                                setImageUrlEdit(res.secure_url); // Lưu URL của ảnh mới
-                                setIsUploading(false); // Đặt lại trạng thái khi hoàn thành upload
-                                return false; // Ngăn upload tự động
-                            }}
-                            maxCount={1}
-                        >
-                            <Button
-                                icon={
-                                    isUploading ? (
-                                        <FontAwesomeIcon
-                                            icon={faSpinner}
-                                            className="text-[20px]  text-[#1890ff] mr-1 motion-preset-spin "
-                                        />
-                                    ) : (
-                                        <UploadOutlined />
-                                    )
-                                }
-                            >
-                                {isUploading ? 'Đang tải lên...' : 'Tải lên ảnh mới'}
-                            </Button>
-                        </Upload>
-                    </Form.Item>
-                    <Form.Item label="Video ID" name="videoId">
-                        <Input />
-                    </Form.Item>
-                    <Form.Item label="Giá" name="price">
-                        <Input />
-                    </Form.Item>
-                </Form>
-            </Modal>
+
             <Modal
                 title="Danh sách học viên"
                 visible={isModalVisibleSl}
@@ -426,4 +317,4 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
     );
 };
 
-export default CourseListById;
+export default CoursePrivateList;

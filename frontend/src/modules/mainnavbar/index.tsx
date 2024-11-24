@@ -25,8 +25,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createAxios } from '~/app/createInstance';
 import { logOutSuccess } from '~/redux/stateglobal/authSlice';
 import {
-    getAllCourses,
     getAllCoursesByIdUser,
+    getAllCoursesPublic,
     getLessonBycourseId,
     getNotifyForUser,
     logOut,
@@ -84,13 +84,16 @@ function MainNavbar() {
 
         const fetchCourseAndLessonData = async () => {
             if (user?.accessToken) {
-                await getAllCourses(dispatch, axiosJWT);
+                await getAllCoursesPublic(dispatch, axiosJWT);
 
                 // Fetch lessons for each course and count
                 const lessonsData = await Promise.all(
                     courseList.map(async (course: any) => {
                         const lessons = await getLessonBycourseId(user.accessToken, course._id, dispatch, axiosJWT);
-                        return { courseId: course._id, lessonCount: lessons.length };
+                        return {
+                            courseId: course._id,
+                            lessonCount: Array.isArray(lessons) ? lessons.length : 0, // Đảm bảo kiểm tra mảng
+                        };
                     }),
                 );
 

@@ -189,7 +189,7 @@ export const logOut = async (dispatch: Dispatch, id: string, router: any, access
 
 // API COURSE
 
-export const getAllCourses = async (dispatch: Dispatch, axiosJWT: AxiosJWT) => {
+export const getAllCoursesPublic = async (dispatch: Dispatch, axiosJWT: AxiosJWT) => {
     dispatch(getCoursesStart());
     try {
         const res = await axiosJWT.get('http://localhost:8000/v1/course/getallcourses', {});
@@ -199,6 +199,14 @@ export const getAllCourses = async (dispatch: Dispatch, axiosJWT: AxiosJWT) => {
     }
 };
 
+export const getAllCoursesPrivate = async (axiosJWT: AxiosJWT) => {
+    try {
+        const res = await axiosJWT.get('http://localhost:8000/v1/course/getallcoursesprivate', {});
+        return res.data;
+    } catch (err) {
+        console.log(err);
+    }
+};
 export const getAllCoursesByIdUser = async (
     accessToken: string,
     userId: string,
@@ -282,6 +290,19 @@ export const updateCourse = async (accessToken: string, dispatch: Dispatch, cour
         dispatch(getCoursesByIdSuccess(res.data));
     } catch (err) {
         dispatch(getCoursesByIdFailed());
+    }
+};
+
+export const approveCourse = async (accessToken: string, dispatch: Dispatch, courseData: any, axiosJWT: AxiosJWT) => {
+    dispatch(getCoursesStart());
+    try {
+        await axiosJWT.put(`http://localhost:8000/v1/course/update/${courseData._id}`, courseData, {
+            headers: { token: `Bearer ${accessToken}` },
+        });
+        const res = await axiosJWT.get('http://localhost:8000/v1/course/getallcourses', {});
+        dispatch(getCoursesSuccess(res.data));
+    } catch (err) {
+        dispatch(getCoursesFailed());
     }
 };
 

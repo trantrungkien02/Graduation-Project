@@ -8,6 +8,7 @@ const Schema = mongoose.Schema;
 const Course = new Schema(
   {
     userId: { type: String },
+    userName: { type: String },
     name: { type: String, required: true },
     des: { type: String },
     image: { type: String },
@@ -16,6 +17,7 @@ const Course = new Schema(
     price: { type: String },
     slug: { type: String, slug: 'name', unique: true },
     registrations: { type: Number, default: 0 },
+    isPublic: { type: Boolean, default: false },
     registeredUsers: [
       {
         userId: { type: String, required: true }, // ID của người dùng đã đăng ký

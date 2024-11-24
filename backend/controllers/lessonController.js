@@ -166,7 +166,7 @@ const lessonController = {
 
       // Nếu không có bài học nào, trả về thông báo thích hợp
       if (lessons.length === 0) {
-        return res.status(404).json({ message: 'Không tìm thấy bài học nào cho khóa học này.' });
+        return res.status(201).json({ message: 'Không tìm thấy bài học nào cho khóa học này.' });
       }
 
       res.status(200).json(lessons);

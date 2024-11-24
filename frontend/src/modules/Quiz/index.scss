@@ -1,10 +1,11 @@
 .quiz-container {
-    width: 600px;
-    margin: 20px auto;
+    width: 99%;
+    height: 686px;
+    margin: 10px auto;
     font-family: Arial, sans-serif;
-    border: 1px solid #ccc;
     border-radius: 10px;
-    padding: 20px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
     background: #f9f9f9;
 }
 
@@ -30,9 +31,10 @@
 }
 
 .answers {
+    width: 70%;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 30px;
     margin-bottom: 20px;
 }
 
@@ -40,10 +42,12 @@
     padding: 10px 15px;
     font-size: 16px;
     background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 3px;
     cursor: pointer;
-    text-align: center;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
     transition: background 0.3s;
 }
 
@@ -52,21 +56,24 @@
 }
 
 .answer-button.selected {
-    background: #4caf50;
+    background: #273d30;
     color: #fff;
-    border-color: #4caf50;
+    border-color: #273d30;
 }
 
 .footer {
+    width: 70%;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 80px;
 }
 
 .nav-button {
     padding: 8px 15px;
     font-size: 14px;
-    background: #007bff;
+    background: #273d30;
+
     color: white;
     border: none;
     border-radius: 5px;
@@ -80,24 +87,29 @@
 
 .pagination {
     display: flex;
-    gap: 5px;
+    gap: 8px;
 }
 
 .page-button {
-    width: 30px;
-    height: 30px;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
     text-align: center;
-    line-height: 30px;
-    border: 1px solid #ddd;
-    border-radius: 50%;
-    background: white;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    line-height: 2.5rem;
     cursor: pointer;
+    border: 2px solid transparent;
 }
-
+.wrong {
+    border-color: #f44336 !important;
+    background-color: #f44336 !important; /* Màu đỏ cho câu trả lời sai */
+    color: #fff !important;
+}
 .page-button.active {
-    background: #007bff;
-    color: white;
-    border-color: #007bff;
+    background: white;
+    color: black;
+    border-color: #273d30;
 }
 
 .submit {
@@ -108,34 +120,40 @@
 .submit button {
     padding: 10px 20px;
     font-size: 16px;
-    background: #4caf50;
+    background: #273d30;
     color: white;
+    margin-bottom: 20px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
 }
 .selected {
-    background-color: #d1f7d1; /* Màu xanh khi lựa chọn */
+    border-color: #273d30; /* Màu xanh khi lựa chọn */
 }
 
 .correct {
-    background-color: #4caf50; /* Màu xanh khi đáp án đúng */
+    background-color: #273d30; /* Màu xanh khi đáp án đúng */
+    color: #fff;
 }
 
 .incorrect {
     background-color: #f44336; /* Màu đỏ khi đáp án sai */
+    color: #fff;
 }
 
 .page-button.answered {
-    background-color: #d1f7d1; /* Màu khi câu hỏi đã được trả lời */
+    background-color: #273d30; /* Màu khi câu hỏi đã được trả lời */
+    color: #fff;
 }
 .reset button {
-    background-color: #f1f1f1;
-    border: 1px solid #ccc;
-    color: #333;
     padding: 10px 20px;
-    cursor: pointer;
     font-size: 16px;
+    background: #273d30;
+    color: white;
+    margin-top: 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
 .reset button:hover {

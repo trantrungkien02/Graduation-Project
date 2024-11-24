@@ -9,9 +9,10 @@ import { faUserGroup, faCirclePlay, faClock } from '@fortawesome/free-solid-svg-
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { createAxios } from '~/app/createInstance';
 import { loginSuccess } from '~/redux/stateglobal/authSlice';
-import { getAllCourses, getLessonBycourseId } from '~/redux/stateglobal/apiRequest';
+import { getAllCoursesPublic, getLessonBycourseId } from '~/redux/stateglobal/apiRequest';
 import './index.scss';
 import Link from 'next/link';
+import axios from 'axios';
 require('dotenv').config();
 
 const CourseList = () => {
@@ -20,7 +21,7 @@ const CourseList = () => {
     const dispatch = useDispatch();
     const router = useRouter();
     const [lessonCounts, setLessonCounts] = useState<any>({});
-
+    const [banners, setBanners] = useState<any[]>([]);
     let axiosJWT = createAxios(user, dispatch, loginSuccess);
 
     // Fetch course and lesson data
@@ -30,15 +31,27 @@ const CourseList = () => {
             return;
         }
 
+        const fetchBanners = async () => {
+            try {
+                const response = await axios.get('http://localhost:8000/v1/banner/getallbanner');
+                setBanners(response.data);
+            } catch (error) {
+                console.error('Error fetching banners:', error);
+            }
+        };
+
         const fetchCourseAndLessonData = async () => {
             if (user?.accessToken) {
-                await getAllCourses(dispatch, axiosJWT);
+                await getAllCoursesPublic(dispatch, axiosJWT);
 
                 // Fetch lessons for each course and count
                 const lessonsData = await Promise.all(
                     courseList.map(async (course: any) => {
                         const lessons = await getLessonBycourseId(user.accessToken, course._id, dispatch, axiosJWT);
-                        return { courseId: course._id, lessonCount: lessons.length };
+                        return {
+                            courseId: course._id,
+                            lessonCount: Array.isArray(lessons) ? lessons.length : 0, // Đảm bảo kiểm tra mảng
+                        };
                     }),
                 );
 
@@ -53,6 +66,7 @@ const CourseList = () => {
         };
 
         fetchCourseAndLessonData();
+        fetchBanners();
     }, []);
 
     const handleCourseClick = (slug: string, courseId: any) => {
@@ -86,30 +100,15 @@ const CourseList = () => {
                     }}
                 />
                 <Slider ref={sliderRef} {...settings}>
-                    <div className="rounded-[16px]">
-                        <img
-                            src="https://thethaovanhoa.mediacdn.vn/372676912336973824/2023/4/13/3404725089438659800793855055254293639677183n-16813563122902043221769.jpeg"
-                            className="w-[1710px] h-[600px] object-cover rounded-[16px]"
-                        />
-                    </div>
-                    <div className="rounded-[16px]">
-                        <img
-                            src="https://www.elle.vn/wp-content/uploads/2023/04/08/523732/truong-nguyet-tan-minh-dan-sao-nu-1200x675-1-1024x576.png"
-                            className="w-[1710px] h-[600px] object-cover rounded-[16px]"
-                        />
-                    </div>
-                    <div className="rounded-[16px]">
-                        <img
-                            src="https://thanhnien.mediacdn.vn/uploaded/tuyenth/2021_01_05/4_RWRP.jpg?width=500"
-                            className="w-[1710px] h-[600px] object-cover rounded-[16px]"
-                        />
-                    </div>
-                    <div className="rounded-[16px]">
-                        <img
-                            src="https://assets2.htv.com.vn/Images/SoCap/ThuyChip/2020/Phim/thang12/nualaduongmatnualadauthuong/2.JPG"
-                            className="w-[1710px] h-[600px] object-cover rounded-[16px]"
-                        />
-                    </div>
+                    {banners.map((banner) => (
+                        <div className="rounded-[16px]" key={banner._id}>
+                            <img
+                                src={banner.url} // Lấy URL từ API
+                                className="w-[1710px] h-[600px] object-cover rounded-[16px]"
+                                alt={banner.title} // Sử dụng tiêu đề làm alt cho hình ảnh
+                            />
+                        </div>
+                    ))}
                 </Slider>
                 <RightOutlined
                     className="right-btn"
@@ -132,7 +131,7 @@ const CourseList = () => {
                                 width={200}
                                 src={course.image}
                                 alt={course.name}
-                                className="absolute top-0 left-0 w-full h-full object-cover"
+                                className="absolute top-0 left-0 w-full h-full object-contain"
                             />
                         </Link>
                         <div className="flex-1 flex flex-col gap-3 p-4 px-5">

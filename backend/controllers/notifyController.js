@@ -75,16 +75,19 @@ const notifyController = {
       const conditions = [
         { receiverId }, // Thông báo dành riêng cho người dùng
         { isGlobal: true }, // Thông báo toàn hệ thống
-        { courseId: { $in: registeredCourseIds } }, // Thông báo liên quan đến các khóa học đã đăng ký
+        {
+          courseId: { $in: registeredCourseIds }, // Thông báo liên quan đến các khóa học đã đăng ký
+          type: 'course-notification',
+        },
       ];
-
+      console.log(role === '2');
       // Thêm điều kiện dựa vào role
       if (role === '1') {
         conditions.push({ role: 1 });
       } else if (role === '2') {
         conditions.push({ role: 2 });
       }
-
+      console.log(conditions);
       // Tìm thông báo
       const notifications = await Notification.find({
         $or: conditions,

@@ -11,6 +11,8 @@ import axios from 'axios';
 import { createAxios } from '~/app/createInstance';
 import { logOutSuccess } from '~/redux/stateglobal/authSlice';
 import NotifyList from './NotifyListById';
+import BannerList from './BannerList';
+import CoursePrivateList from './CoursePrivateList';
 function ManageSystem() {
     const [form] = Form.useForm();
     const router = useRouter();
@@ -103,7 +105,10 @@ function ManageSystem() {
             />
             <h2 className="manage-title">Quản lý hệ thống</h2>
             <Tabs defaultActiveKey="1" className="pl-5 target-nav">
-                <Tabs.TabPane tab={<div>Thêm thông báo</div>} key="1">
+                <Tabs.TabPane tab={<div>Quản lý khóa học chờ duyệt</div>} key="1">
+                    <CoursePrivateList />
+                </Tabs.TabPane>
+                <Tabs.TabPane tab={<div>Thêm thông báo</div>} key="2">
                     <Form
                         form={form}
                         name="add-course"
@@ -169,6 +174,9 @@ function ManageSystem() {
                 </Tabs.TabPane>
                 <Tabs.TabPane tab={<div>Xem danh sách thông báo</div>} key="3">
                     <NotifyList />
+                </Tabs.TabPane>
+                <Tabs.TabPane tab={<div>Quản lý banner</div>} key="4">
+                    <BannerList />
                 </Tabs.TabPane>
             </Tabs>
         </div>
