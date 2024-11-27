@@ -9,10 +9,11 @@ import { config } from '@fortawesome/fontawesome-svg-core';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import 'react-quill/dist/quill.snow.css';
 config.autoAddCss = true;
 dotenv.config();
 export const metadata: Metadata = {
-    title: 'KTGroup',
+    title: 'KTGroup Learning',
     description: 'Produced by Tran Trung Kien',
 };
 const plus_jakarta_sans = Plus_Jakarta_Sans({

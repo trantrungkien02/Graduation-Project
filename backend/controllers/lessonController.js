@@ -88,7 +88,7 @@ const lessonController = {
         des: `Bài giảng "${name}" đã được thêm vào khóa học mà bạn đã đăng ký.`,
         courseId: course.slug,
         lessonId: lesson._id,
-        type: 'lesson', // Loại thông báo là bài giảng
+        type: 'course-notification', // Loại thông báo là bài giảng
       });
 
       await notification.save();
@@ -137,7 +137,7 @@ const lessonController = {
         des: `Bài thực hành "${name}" đã được thêm vào khóa học mà bạn đã đăng ký.`,
         courseId: course.slug,
         lessonId: practice._id,
-        type: 'practice', // Loại thông báo là bài thực hành
+        type: 'course-notification', // Loại thông báo là bài thực hành
       });
 
       await notification.save();

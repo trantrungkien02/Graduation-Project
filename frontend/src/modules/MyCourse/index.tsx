@@ -4,7 +4,7 @@ import './index.scss';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { getAllCourses, getLessonBycourseId } from '~/redux/stateglobal/apiRequest';
+import { getAllCoursesPublic, getLessonBycourseId } from '~/redux/stateglobal/apiRequest';
 import { createAxios } from '~/app/createInstance';
 import { logOutSuccess } from '~/redux/stateglobal/authSlice';
 
@@ -26,7 +26,7 @@ const MyCourse = () => {
 
         const fetchCourseAndLessonData = async () => {
             if (user?.accessToken) {
-                await getAllCourses(dispatch, axiosJWT);
+                await getAllCoursesPublic(dispatch, axiosJWT);
 
                 const lessonsData = await Promise.all(
                     courseList.map(async (course: any) => {

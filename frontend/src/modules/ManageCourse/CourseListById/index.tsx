@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { createAxios } from '~/app/createInstance';
 import { loginSuccess } from '~/redux/stateglobal/authSlice';
+import './index.scss';
 import {
     deleteCourse,
     getAllCoursesByIdUser,
@@ -16,6 +17,7 @@ import {
 import { UploadOutlined } from '@ant-design/icons';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import ReactQuill from 'react-quill';
 
 const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<any> }) => {
     const user = useSelector((state: any) => state.auth.login?.currentUser);
@@ -38,6 +40,10 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imageUrlEdit, setImageUrlEdit] = useState<string>('');
     const [isUploading, setIsUploading] = useState(false); // State để theo dõi quá trình tải ảnh
+    const [requireValue, setRequireValue] = useState('<ul><li>ok</li><li>ok</li></ul>');
+    const [resultValue, setResultValue] = useState('');
+    const [desValue, setDesValue] = useState('');
+    const [tittleValue, setTittleValue] = useState('');
 
     useEffect(() => {
         if (!user) {
@@ -93,7 +99,15 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
     const handleEdit = async (courseId: string) => {
         const courseData = await getCourseById(user?.accessToken, courseId, dispatch, axiosJWT);
         setEditingCourse(courseData); // Lưu dữ liệu khóa học đang chỉnh sửa
-        form.setFieldsValue(courseData); // Đặt giá trị form với dữ liệu từ API
+        setRequireValue(courseData.require);
+        console.log(courseData);
+        form.setFieldsValue({
+            ...courseData,
+            tittle: courseData.tittle, // HTML được trả về từ API
+            require: courseData.require,
+            result: courseData.result,
+            des: courseData.des,
+        }); // Đặt giá trị form với dữ liệu từ API
         setIsModalVisible(true); // Hiển thị modal
     };
 
@@ -122,6 +136,11 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
     };
 
     const handleViewStudents = async (courseId: string) => {
+        const resEdit = await axiosJWT.get(`http://localhost:8000/v1/course/getcoursebyid/` + courseId, {
+            headers: { token: `Bearer ${user?.accessToken}` },
+        });
+        setEditingCourse(resEdit.data);
+
         const res = await axiosJWT.get(`http://localhost:8000/v1/lesson/getlessonsbycourseid/` + courseId, {
             headers: { token: `Bearer ${user?.accessToken}` },
         });
@@ -269,7 +288,40 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             width: '30%',
         },
     ];
+    const modules = {
+        toolbar: [
+            [{ header: [1, 2, 3, false] }], // Các cấp tiêu đề
+            ['bold', 'italic', 'underline', 'strike'], // Định dạng chữ
+            [{ color: [] }, { background: [] }], // Màu chữ, màu nền
+            [{ script: 'sub' }, { script: 'super' }], // Chỉ số dưới, chỉ số trên
+            ['blockquote', 'code-block'], // Trích dẫn, khối mã
+            [{ list: 'ordered' }, { list: 'bullet' }], // Danh sách
+            [{ indent: '-1' }, { indent: '+1' }], // Thụt lề
+            [{ align: [] }], // Căn chỉnh
+            ['link', 'image', 'video'], // Liên kết, hình ảnh, video
+            ['clean'], // Xóa định dạng
+        ],
+    };
 
+    const formats = [
+        'header',
+        'bold',
+        'italic',
+        'underline',
+        'strike',
+        'color',
+        'background',
+        'script',
+        'blockquote',
+        'code-block',
+        'list',
+        'bullet',
+        'indent',
+        'align',
+        'link',
+        'image',
+        'video',
+    ];
     return (
         <div className="home-container pl-[40px] pr-[50px]">
             {/* Search Section */}
@@ -303,20 +355,80 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
                 onCancel={handleCancelEdit}
                 okText="Lưu"
                 cancelText="Hủy"
+                width={900}
                 centered
+                className="manage-course"
             >
                 <Form form={form} layout="vertical">
                     <Form.Item label="Tên khóa học" name="name">
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Mô tả khóa học" name="des">
-                        <Input />
+                    <Form.Item
+                        label="Tiêu đề khóa học"
+                        name="tittle"
+                        rules={[{ required: true, message: 'Tiêu đề khóa học không được để trống!' }]}
+                    >
+                        <ReactQuill
+                            theme="snow"
+                            modules={modules}
+                            formats={formats}
+                            value={form.getFieldValue('tittle')} // Hiển thị nội dung HTML từ API
+                            placeholder="Nhập tiêu đề khóa học"
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="Yêu cầu của khóa học"
+                        name="require"
+                        rules={[{ required: true, message: 'Yêu cầu của khóa học không được để trống!' }]}
+                    >
+                        <ReactQuill
+                            theme="snow"
+                            modules={modules}
+                            formats={formats}
+                            value={form.getFieldValue('require')} // Hiển thị nội dung HTML từ API
+                            onChange={(value) => form.setFieldsValue({ require: value })}
+                            placeholder="Nhập yêu cầu của khóa học"
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="Kết quả của khóa học"
+                        name="result"
+                        rules={[{ required: true, message: 'Kết quả của khóa học không được để trống!' }]}
+                    >
+                        <ReactQuill
+                            theme="snow"
+                            modules={modules}
+                            formats={formats}
+                            value={form.getFieldValue('result')} // Hiển thị nội dung HTML từ API
+                            onChange={(value) => form.setFieldsValue({ result: value })}
+                            placeholder="Nhập kết quả của khóa học"
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Mô tả"
+                        name="des"
+                        rules={[{ required: true, message: 'Mô tả không được để trống!' }]}
+                    >
+                        <ReactQuill
+                            theme="snow"
+                            modules={modules}
+                            formats={formats}
+                            value={form.getFieldValue('des')} // Hiển thị nội dung HTML từ API
+                            onChange={(value) => form.setFieldsValue({ des: value })}
+                            placeholder="Nhập mô tả cho khóa học"
+                        />
                     </Form.Item>
                     <Form.Item label="Ảnh đại diện khóa học">
                         <Image
                             src={imageUrlEdit || form.getFieldValue('image')}
                             alt="Ảnh đại diện khóa học"
-                            style={{ marginBottom: 10, width: '472px', height: 'auto', objectFit: 'contain' }}
+                            style={{
+                                marginBottom: 10,
+                                width: '100%',
+                                height: 'auto',
+                                objectFit: 'contain',
+                            }}
                         />
                         <Upload
                             beforeUpload={async (file) => {
@@ -354,13 +466,18 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
                 </Form>
             </Modal>
             <Modal
-                title="Danh sách học viên"
+                title={
+                    <div>
+                        <h3>Danh sách học viên của khóa học "{editingCourse?.name}"</h3>
+                    </div>
+                }
                 visible={isModalVisibleSl}
                 onCancel={handleCloseModal}
                 footer={null}
                 width={1200}
                 centered
             >
+                <p className="font-bold text-[20px] mb-[10px]">Tổng số học viên: {studentList.length} Học viên</p>
                 <Table
                     dataSource={studentList}
                     columns={[
@@ -368,6 +485,8 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
                             title: 'Tên học viên',
                             dataIndex: 'name',
                             key: 'name',
+                            sorter: (a, b) => a.name.localeCompare(b.name), // Sắp xếp A-Z, Z-A
+                            sortDirections: ['ascend', 'descend'], // Chỉ định thứ tự sắp xếp
                         },
                         {
                             title: 'Email',
@@ -376,22 +495,38 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
                         },
                         {
                             title: 'Tiến độ',
-                            dataIndex: 'lessonCompleted', // Lấy 'lessonCompleted' làm dữ liệu hiển thị
+                            dataIndex: 'lessonCompleted',
                             key: 'progress',
+                            sorter: (a, b) => a.lessonCompleted - b.lessonCompleted, // Sắp xếp theo tiến độ
+                            sortDirections: ['ascend', 'descend'],
                             render: (lessonCompleted, record) => {
-                                return `${lessonCompleted} / ${record.courseLength} Bài học`; // Hiển thị 'lessonCompleted / courseLength'
+                                return `${lessonCompleted} / ${record.courseLength} Bài học`; // Hiển thị tiến độ
                             },
                         },
                         {
                             title: 'Ngày đăng ký',
                             dataIndex: 'registeredAt',
                             key: 'registeredAt',
+                            sorter: (a, b) => new Date(a.registeredAt).getTime() - new Date(b.registeredAt).getTime(), // Sắp xếp theo thời gian đăng ký
+                            sortDirections: ['ascend', 'descend'],
                             render: (text: string) => new Date(text).toLocaleString(),
                         },
                     ]}
                     rowKey="userId"
+                    pagination={{
+                        pageSizeOptions: ['5', '10', '15'], // Các tùy chọn số lượng hiển thị
+                        showSizeChanger: true, // Hiển thị lựa chọn số lượng hiển thị
+                        defaultPageSize: 10, // Số lượng mặc định trên mỗi trang
+                    }}
+                    scroll={{ y: 600 }}
+                    locale={{
+                        triggerDesc: 'Nhấp để sắp xếp giảm dần',
+                        triggerAsc: 'Nhấp để sắp xếp tăng dần',
+                        cancelSort: 'Hủy sắp xếp',
+                    }}
                 />
             </Modal>
+
             <Modal title="Tạo thông báo" visible={isModalVisibleCn} onCancel={handleCancelCn} footer={null}>
                 <Form form={form} onFinish={handleSubmitCn} layout="vertical">
                     {/* Ẩn courseId */}

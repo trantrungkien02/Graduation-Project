@@ -280,12 +280,18 @@ function MainNavbar() {
                                         }}
                                     >
                                         <p className="font-bold mb-2">{notif.tittle}</p>
-                                        <p className="mb-2 overflow-hidden text-ellipsis whitespace-nowrap">
+                                        <p className="mb-4 overflow-hidden text-ellipsis whitespace-nowrap">
                                             {notif.des}
                                         </p>
-                                        <span className="text-xs text-gray-500 absolute bottom-2 right-4">
-                                            {new Date(notif.createdAt).toLocaleString()}
-                                        </span>
+                                        <div className="flex justify-between">
+                                            <p className="text-xs text-gray-500 absolute bottom-2 left-4">
+                                                <FontAwesomeIcon icon={faUser} className=" text-[10px] text-gray-500" />
+                                                : {notif.senderName}
+                                            </p>
+                                            <span className="text-xs text-gray-500 absolute bottom-2 right-4">
+                                                {new Date(notif.createdAt).toLocaleString()}
+                                            </span>
+                                        </div>
                                     </div>
                                 ))
                         ) : (
@@ -399,7 +405,7 @@ function MainNavbar() {
             <p className="font-normal text-base text-center p-2.5 border-b border-[#DCDCDC]">Liên hệ trợ giúp</p>
             <div className="px-4 my-5">
                 <Link
-                    href="tel:+(84) 246 329 5589"
+                    href="tel:+(84) 776 499 168"
                     className=" flex justify-start items-center bg-[#f2faff] gap-x-2 p-5 mb-2.5"
                 >
                     <Image src={icons.iconUser} alt=""></Image>
@@ -422,12 +428,12 @@ function MainNavbar() {
                                 color: 'rgba(0, 0, 0, 0.45)',
                             }}
                         >
-                            +(84) 246 329 5589
+                            +(84) 776 499 168
                         </p>
                     </div>
                 </Link>
                 <Link
-                    href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@tinasoft.vn"
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=kiencutet@gmail.com"
                     className=" flex justify-start items-center bg-[#f2faff] gap-x-2 p-5 mb-2.5"
                 >
                     <Image src={icons.iconTele} alt=""></Image>
@@ -450,12 +456,12 @@ function MainNavbar() {
                                 color: 'rgba(0, 0, 0, 0.45)',
                             }}
                         >
-                            contact@tinasoft.vn
+                            kiencutet@gmail.com
                         </p>
                     </div>
                 </Link>
                 <Link
-                    href="tel:+(84) 246 329 5589"
+                    href="tel:+(84) 776 499 168"
                     className=" flex justify-start items-center bg-[#f2faff] gap-x-2 p-5 mb-2.5"
                 >
                     <Image src={icons.iconBriefcase} alt=""></Image>
@@ -478,7 +484,7 @@ function MainNavbar() {
                                 color: 'rgba(0, 0, 0, 0.45)',
                             }}
                         >
-                            Tầng 4, Tòa nhà Ellipse Tower, 110 Trần Phú, Hà Đông, Hà Nội
+                            Di Ái, Di Trạch, Hoài Đức, Hà Nội
                         </p>
                     </div>
                 </Link>
@@ -487,7 +493,7 @@ function MainNavbar() {
                 <div className="relative">
                     <div className="width: 400px; height: 220px; position: relative; overflow: hidden;"></div>
                     <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3725.3797312709403!2d105.78145401112488!3d20.9774101805784!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135accd83d48047%3A0x66b216d46fa4648d!2zQ8O0bmcgdHkgQ-G7lSBQaOG6p24gVGluYXNvZnQgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1721058600870!5m2!1svi!2s"
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.5373706458477!2d105.72246731112685!3d21.05118918052282!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31345442e127ad37%3A0x2050bcae4a562507!2zxJAuIERpIMOBaSwgSMOgIE7hu5lpLCBWaeG7h3QgTmFt!5e0!3m2!1svi!2s!4v1732500164472!5m2!1svi!2s"
                         width="408"
                         height="220"
                         style={{ border: 0 }}

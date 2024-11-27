@@ -26,6 +26,7 @@ function ManageSystem() {
             const dataToSend = {
                 ...values,
                 senderId: user?._id,
+                senderName: 'Admin',
                 isGlobal: values.role === 'all' ? true : false,
                 type: 'system',
             };

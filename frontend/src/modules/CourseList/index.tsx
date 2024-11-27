@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, Image } from 'antd';
+import { Button, Image, message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import React, { Component } from 'react';
@@ -68,7 +68,6 @@ const CourseList = () => {
         fetchCourseAndLessonData();
         fetchBanners();
     }, []);
-
     const handleCourseClick = (slug: string, courseId: any) => {
         const isRegistered = user?.registeredCourses?.some((course: any) => course.courseId == courseId);
         if (isRegistered) {

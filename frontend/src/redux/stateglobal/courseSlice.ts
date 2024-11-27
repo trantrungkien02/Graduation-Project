@@ -6,6 +6,7 @@ const courseSlice = createSlice({
         courses: {
             allCourses: null,
             allCoursesById: [],
+            courseOrder: null,
             isFetching: false,
             error: false,
         },
@@ -52,6 +53,10 @@ const courseSlice = createSlice({
             state.courses.isFetching = false;
             state.courses.error = true;
         },
+        getCoursesOrderSuccess: (state, action) => {
+            state.courses.isFetching = false;
+            state.courses.courseOrder = action.payload;
+        },
         deleteCoursestart: (state) => {
             state.courses.isFetching = true;
         },
@@ -90,6 +95,7 @@ export const {
     getCoursesByIdStart,
     getCoursesByIdSuccess,
     getCoursesByIdFailed,
+    getCoursesOrderSuccess,
     deleteCoursestart,
     deleteCoursesSuccess,
     deleteCoursesFailed,

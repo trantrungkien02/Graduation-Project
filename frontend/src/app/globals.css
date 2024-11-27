@@ -82,3 +82,60 @@ body {
 .ant-modal-close {
     top: 15px !important;
 }
+/* Đặt lại kiểu cho danh sách có thứ tự */
+ol {
+    list-style-type: decimal; /* Số thứ tự (1, 2, 3, ...) */
+    padding-left: 20px; /* Thêm lề trái để tạo khoảng cách */
+}
+
+/* Đặt lại kiểu cho danh sách không có thứ tự */
+ul {
+    list-style-type: disc; /* Dấu chấm (bullet points) */
+    padding-left: 20px; /* Thêm lề trái để tạo khoảng cách */
+}
+
+/* Nếu bạn muốn chỉnh sửa kiểu của các item trong danh sách */
+ol li,
+ul li {
+    margin-bottom: 5px; /* Thêm khoảng cách giữa các mục trong danh sách */
+}
+/* Khôi phục lại các thẻ h1 đến h5 với kiểu chữ mặc định */
+h1,
+h2,
+h3,
+h4,
+h5 {
+    font-weight: bold; /* Làm đậm chữ */
+    margin-top: 0; /* Loại bỏ khoảng cách phía trên */
+    margin-bottom: 0.5em; /* Khoảng cách phía dưới */
+}
+
+/* Tùy chỉnh cụ thể cho từng thẻ */
+h1 {
+    font-size: 2.5rem; /* Cỡ chữ của h1 */
+}
+
+h2 {
+    font-size: 2rem; /* Cỡ chữ của h2 */
+}
+
+h3 {
+    font-size: 1.75rem; /* Cỡ chữ của h3 */
+}
+
+h4 {
+    font-size: 1.5rem; /* Cỡ chữ của h4 */
+}
+
+h5 {
+    font-size: 1.25rem; /* Cỡ chữ của h5 */
+}
+
+/* Nếu bạn muốn thêm màu sắc cho các thẻ */
+h1 {
+    color: #333; /* Màu cho h1 */
+}
+
+h2 {
+    color: #555; /* Màu cho h2 */
+}

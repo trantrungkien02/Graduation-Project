@@ -315,7 +315,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
         try {
             const updatedCommentData = {
                 ...commentData,
-                text: valueQuill.replace(/<[^>]*>/g, ''),
+                text: valueQuill,
             };
             console.log(updatedCommentData);
 
@@ -338,7 +338,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
             const { lessonId, ...commentWithoutLessonId } = commentData;
             const updatedRecommentData = {
                 ...commentWithoutLessonId,
-                text: valueQuillRecomment.replace(/<[^>]*>/g, ''),
+                text: valueQuillRecomment,
             };
             console.log(updatedRecommentData);
 
@@ -352,7 +352,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                 receiverId: reply === '' ? comment.userId : reply.userId,
                 tittle: `${updatedRecommentData.fullName} đã trả lời bình luận của bạn`,
                 type: 'comment',
-                des: valueQuillRecomment.replace(/<[^>]*>/g, ''),
+                des: valueQuillRecomment,
                 lessonId: comment.lessonId,
                 courseId: course.slug,
             };
@@ -445,7 +445,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const handleUpdateComment = async (commentId: any, lessonId: any) => {
         try {
             await axios.put(`http://localhost:8000/v1/comment/update/${commentId}`, {
-                text: valueQuillRecomment.replace(/<[^>]*>/g, ''),
+                text: valueQuillRecomment,
             });
             setActiveReplyId(null);
             setValueQuillRecomment('');
@@ -459,7 +459,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const handleUpdateReply = async (commentId: any, lessonId: any, replyId: any) => {
         try {
             await axios.put(`http://localhost:8000/v1/comment/${commentId}/updatereply/${replyId}`, {
-                text: valueQuillRecomment.replace(/<[^>]*>/g, ''),
+                text: valueQuillRecomment,
             });
             setActiveReplyId(null);
             setValueQuillRecomment('');
@@ -669,7 +669,11 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                                                 {new Date(comment.timestamp).toLocaleString()}
                                                             </span>
                                                         </div>
-                                                        <p className="comment-text">{comment.text}</p>
+                                                        <p
+                                                            className="comment-text"
+                                                            dangerouslySetInnerHTML={{ __html: comment.text }}
+                                                        ></p>
+
                                                         <div className="comment-actions justify-between">
                                                             <div className="flex">
                                                                 <span className="mr-3">Thích</span>

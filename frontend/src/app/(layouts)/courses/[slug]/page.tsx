@@ -26,7 +26,10 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/navigation';
 import { Form, Input, Modal } from 'antd';
-
+import PaymentFormModal from '~/modules/PaymentFormModal';
+import { getCoursesOrderSuccess } from '~/redux/stateglobal/courseSlice';
+import DOMPurify from 'dompurify';
+import sanitizeCourse from '~/modules/FunctionHandle/sanitizeCourse';
 interface CourseDetailPageProps {
     params: { slug: string };
 }
@@ -119,6 +122,10 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
         }
     };
 
+    const handleBuyCourseClick = (courseData: any) => {
+        dispatch(getCoursesOrderSuccess(courseData));
+        router.push(`/payment`);
+    };
     const handleApproveClick = () => {
         setIsModalVisible(true);
     };
@@ -128,7 +135,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
         await approveCourse(user?.accessToken, dispatch, updatedCourseData, axiosJWT);
         const notifyData = {
             senderId: user?._id,
-            senderName: user?.username,
+            senderName: 'Admin',
             receiverId: courseData.userId,
             tittle: `Khóa học ${courseData.name} của bạn đã được phê duyệt`,
             type: 'system',
@@ -147,7 +154,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const handleRefuseApprove = async (courseData: any, formData: { tittle: string; des: string }) => {
         const notifyData = {
             senderId: user?._id,
-            senderName: user?.username,
+            senderName: 'Admin',
             receiverId: courseData.userId,
             tittle: formData.tittle, // Lấy từ form
             type: 'system',
@@ -174,11 +181,15 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const handleCancelRs = () => {
         setIsModalVisibleRs(false); // Đóng modal nếu người dùng hủy
     };
+    const sanitizedCourse = sanitizeCourse(course);
+
     return (
         <div className="flex pr-[80px] pl-[40px] pt-[30px]">
-            <div className="w-2/3 px-3">
+            <div className="w-2/3 px-3 course-des">
                 <h1 className="course-name">{course.name}</h1>
-                <p className="course-des">{course.des}</p>
+                <p dangerouslySetInnerHTML={{ __html: sanitizedCourse.tittle }} />
+                <h5 className="my-4">Bạn sẽ học được gì sau khóa học ?</h5>
+                <p dangerouslySetInnerHTML={{ __html: sanitizedCourse.result }} />
                 <div className="detail-course">Nội dung khóa học</div>
                 <div className="flex my-3">
                     <div className="flex items-center">
@@ -208,6 +219,11 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                         <p className="text-center text-[16px] text-gray-500">Khóa học này chưa có bài giảng nào</p>
                     )}
                 </ul>
+                <h5 className="my-4">Yêu cầu</h5>
+                <p dangerouslySetInnerHTML={{ __html: sanitizedCourse.require }} />
+
+                <h5 className="my-4">Mô tả</h5>
+                <div dangerouslySetInnerHTML={{ __html: sanitizedCourse.des }} />
             </div>
             <div className="w-1/3 video-container px-3 course-detail-page">
                 <iframe
@@ -274,9 +290,13 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                 </Form>
                             </Modal>
                         </div>
-                    ) : (
+                    ) : course.price === 'Miễn phí' ? (
                         <button className="register-button" onClick={() => handleCourseClick(course.slug, course._id)}>
                             Đăng ký học
+                        </button>
+                    ) : (
+                        <button className="register-button" onClick={() => handleBuyCourseClick(course)}>
+                            Mua ngay
                         </button>
                     )}
                     <ul className="course-details">

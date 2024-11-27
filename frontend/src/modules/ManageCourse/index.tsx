@@ -11,6 +11,9 @@ import CourseListById from './CourseListById';
 import { UploadOutlined } from '@ant-design/icons';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import dynamic from 'next/dynamic';
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+import 'react-quill/dist/quill.snow.css';
 function ManageCourse() {
     const [form] = Form.useForm();
     const router = useRouter();
@@ -137,7 +140,40 @@ function ManageCourse() {
     const onFinishFailed = (errorInfo: any) => {
         console.log('Failed:', errorInfo);
     };
+    const modules = {
+        toolbar: [
+            [{ header: [1, 2, 3, false] }], // Các cấp tiêu đề
+            ['bold', 'italic', 'underline', 'strike'], // Định dạng chữ
+            [{ color: [] }, { background: [] }], // Màu chữ, màu nền
+            [{ script: 'sub' }, { script: 'super' }], // Chỉ số dưới, chỉ số trên
+            ['blockquote', 'code-block'], // Trích dẫn, khối mã
+            [{ list: 'ordered' }, { list: 'bullet' }], // Danh sách
+            [{ indent: '-1' }, { indent: '+1' }], // Thụt lề
+            [{ align: [] }], // Căn chỉnh
+            ['link', 'image', 'video'], // Liên kết, hình ảnh, video
+            ['clean'], // Xóa định dạng
+        ],
+    };
 
+    const formats = [
+        'header',
+        'bold',
+        'italic',
+        'underline',
+        'strike',
+        'color',
+        'background',
+        'script',
+        'blockquote',
+        'code-block',
+        'list',
+        'bullet',
+        'indent',
+        'align',
+        'link',
+        'image',
+        'video',
+    ];
     return (
         <div className="add-course-form-container">
             <ToastContainer
@@ -157,113 +193,162 @@ function ManageCourse() {
             <h2 className="manage-title">Quản lý khóa Học</h2>
             <Tabs defaultActiveKey="1" className="pl-5 target-nav" onChange={handleTabChange}>
                 <Tabs.TabPane tab={<div>Thêm khóa học</div>} key="1">
-                    <div onClick={showModal} className="text-red-600 ml-[300px] mb-[30px] text-[16px]">
-                        Lưu ý khi thêm bài giảng
-                    </div>
-                    <Modal
-                        title="Lưu ý khi thêm bài giảng"
-                        open={isModalOpen}
-                        onOk={handleOk}
-                        onCancel={handleCancel}
-                        okText="Đã hiểu"
-                        cancelText="Hủy"
-                    >
-                        <ul>
-                            <li>1. Tên và mô tả bài giảng rõ ràng, dễ hiểu.</li>
-                            <li>2. Video chất lượng cao, đúng định dạng.</li>
-                            <li>3. Cung cấp tài liệu hỗ trợ nếu có.</li>
-                            <li>4. Sắp xếp bài học theo thứ tự logic.</li>
-                            <li>5. Đặt giá hợp lý, thêm khuyến mãi nếu cần..</li>
-                            <li>6. Kiểm tra thông tin trước khi lưu.</li>
-                            <li>7. Chờ Admin phê duyệt trước khi xuất bản.</li>
-                        </ul>
-                    </Modal>
-                    <Form
-                        form={form}
-                        name="add-course"
-                        labelCol={{ span: 4 }}
-                        wrapperCol={{ span: 12 }}
-                        initialValues={{ remember: true }}
-                        onFinish={onFinish}
-                        onFinishFailed={onFinishFailed}
-                        autoComplete="off"
-                        className="add-course-form"
-                    >
-                        <Form.Item
-                            label="Tên khóa học"
-                            name="name"
-                            rules={[{ required: true, message: 'Tên khóa học không được để trống!' }]}
+                    <div className="h-full overflow-auto">
+                        <div onClick={showModal} className="text-red-600 ml-[300px] mb-[30px] text-[16px]">
+                            Lưu ý khi thêm bài giảng
+                        </div>
+                        <Modal
+                            title="Lưu ý khi thêm bài giảng"
+                            open={isModalOpen}
+                            onOk={handleOk}
+                            onCancel={handleCancel}
+                            okText="Đã hiểu"
+                            cancelText="Hủy"
                         >
-                            <Input placeholder="Nhập tên khóa học" />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Mô tả"
-                            name="des"
-                            rules={[{ required: true, message: 'Mô tả không được để trống!' }]}
+                            <ul>
+                                <li>1. Tên và mô tả bài giảng rõ ràng, dễ hiểu.</li>
+                                <li>
+                                    2. Khóa học tối thiểu phải có ít nhất 1 bài giảng. Mỗi bài giảng phải chứa video
+                                    (trừ bài thực hành)
+                                </li>
+                                <li>2. Video chất lượng cao, đúng định dạng.</li>
+                                <li>3. Cung cấp tài liệu hỗ trợ nếu có.</li>
+                                <li>4. Sắp xếp bài học theo thứ tự logic.</li>
+                                <li>5. Đặt giá hợp lý, thêm khuyến mãi nếu cần..</li>
+                                <li>6. Kiểm tra thông tin trước khi lưu.</li>
+                                <li>7. Chờ Admin phê duyệt trước khi xuất bản.</li>
+                            </ul>
+                        </Modal>
+                        <Form
+                            form={form}
+                            name="add-course"
+                            labelCol={{ span: 4 }}
+                            wrapperCol={{ span: 12 }}
+                            initialValues={{ remember: true }}
+                            onFinish={onFinish}
+                            onFinishFailed={onFinishFailed}
+                            autoComplete="off"
+                            className="add-course-form"
                         >
-                            <Input.TextArea rows={4} placeholder="Nhập mô tả cho khóa học" />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Ảnh đại diện khóa học"
-                            name="image"
-                            rules={[{ required: false, message: 'Ảnh đại diện khóa học không được để trống!' }]}
-                        >
-                            <Upload
-                                beforeUpload={(file) => {
-                                    handleImageUpload(file);
-                                    return false; // Ngăn upload tự động
-                                }}
-                                maxCount={1} // Chỉ upload 1 file
-                                accept="image/*"
+                            <Form.Item
+                                label="Tên khóa học"
+                                name="name"
+                                rules={[{ required: true, message: 'Tên khóa học không được để trống!' }]}
                             >
-                                <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
-                            </Upload>
-                            {uploading && (
-                                <FontAwesomeIcon
-                                    icon={faSpinner}
-                                    className="text-[30px] mt-[5px] text-[#555] hover:text-[#0b3a82] motion-preset-spin "
+                                <Input placeholder="Nhập tên khóa học" />
+                            </Form.Item>
+                            <Form.Item
+                                label="Tiêu đề khóa học"
+                                name="tittle"
+                                rules={[{ required: true, message: 'Tiêu đề khóa học không được để trống!' }]}
+                            >
+                                <ReactQuill
+                                    theme="snow"
+                                    modules={modules}
+                                    formats={formats}
+                                    placeholder="Nhập tiêu đề khóa học"
                                 />
-                            )}
-                            {imageUrl && (
-                                <img src={imageUrl} alt="Uploaded" style={{ marginTop: 10, width: '100px' }} />
-                            )}
-                        </Form.Item>
+                            </Form.Item>
 
-                        <Form.Item
-                            label="Video Trailer"
-                            name="videoId"
-                            rules={[{ required: true, message: 'Video Trailer không được để trống!' }]}
-                        >
-                            <Input placeholder="Nhập Video ID" />
-                        </Form.Item>
+                            <Form.Item
+                                label="Yêu cầu của khóa học"
+                                name="require"
+                                rules={[{ required: true, message: 'Yêu cầu của khóa học không được để trống!' }]}
+                            >
+                                <ReactQuill
+                                    theme="snow"
+                                    modules={modules}
+                                    formats={formats}
+                                    placeholder="Nhập yêu cầu của khóa học"
+                                />
+                            </Form.Item>
 
-                        <Form.Item
-                            label="Cấp độ"
-                            name="level"
-                            rules={[{ required: true, message: 'Cấp độ không được để trống!' }]}
-                        >
-                            <Select placeholder="Chọn cấp độ khóa học">
-                                <Select.Option value="beginner">Cơ bản</Select.Option>
-                                <Select.Option value="intermediate">Trung cấp</Select.Option>
-                                <Select.Option value="advanced">Nâng cao</Select.Option>
-                            </Select>
-                        </Form.Item>
+                            <Form.Item
+                                label="Kết quả của khóa học"
+                                name="result"
+                                rules={[{ required: true, message: 'Kết quả của khóa học không được để trống!' }]}
+                            >
+                                <ReactQuill
+                                    theme="snow"
+                                    modules={modules}
+                                    formats={formats}
+                                    placeholder="Nhập kết quả của khóa học"
+                                />
+                            </Form.Item>
 
-                        <Form.Item
-                            label="Giá tiền"
-                            name="price"
-                            initialValue="Miễn phí"
-                            rules={[{ required: true, message: 'Giá tiền không được để trống!' }]}
-                        >
-                            <Input placeholder="Nhập giá tiền khóa học" />
-                        </Form.Item>
+                            <Form.Item
+                                label="Mô tả"
+                                name="des"
+                                rules={[{ required: true, message: 'Mô tả không được để trống!' }]}
+                            >
+                                <ReactQuill
+                                    theme="snow"
+                                    modules={modules}
+                                    formats={formats}
+                                    placeholder="Nhập mô tả cho khóa học"
+                                />
+                            </Form.Item>
 
-                        <Button type="primary" htmlType="submit" className="ml-[300px]">
-                            Thêm Khóa Học
-                        </Button>
-                    </Form>
+                            <Form.Item
+                                label="Ảnh đại diện khóa học"
+                                name="image"
+                                rules={[{ required: false, message: 'Ảnh đại diện khóa học không được để trống!' }]}
+                            >
+                                <Upload
+                                    beforeUpload={(file) => {
+                                        handleImageUpload(file);
+                                        return false; // Ngăn upload tự động
+                                    }}
+                                    maxCount={1} // Chỉ upload 1 file
+                                    accept="image/*"
+                                >
+                                    <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+                                </Upload>
+                                {uploading && (
+                                    <FontAwesomeIcon
+                                        icon={faSpinner}
+                                        className="text-[30px] mt-[5px] text-[#555] hover:text-[#0b3a82] motion-preset-spin "
+                                    />
+                                )}
+                                {imageUrl && (
+                                    <img src={imageUrl} alt="Uploaded" style={{ marginTop: 10, width: '100px' }} />
+                                )}
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Video Trailer"
+                                name="videoId"
+                                rules={[{ required: true, message: 'Video Trailer không được để trống!' }]}
+                            >
+                                <Input placeholder="Nhập Video ID" />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Cấp độ"
+                                name="level"
+                                rules={[{ required: true, message: 'Cấp độ không được để trống!' }]}
+                            >
+                                <Select placeholder="Chọn cấp độ khóa học">
+                                    <Select.Option value="beginner">Cơ bản</Select.Option>
+                                    <Select.Option value="intermediate">Trung cấp</Select.Option>
+                                    <Select.Option value="advanced">Nâng cao</Select.Option>
+                                </Select>
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Giá tiền"
+                                name="price"
+                                initialValue="Miễn phí"
+                                rules={[{ required: true, message: 'Giá tiền không được để trống!' }]}
+                            >
+                                <Input placeholder="Nhập giá tiền khóa học" />
+                            </Form.Item>
+
+                            <Button type="primary" htmlType="submit" className="ml-[300px]">
+                                Thêm Khóa Học
+                            </Button>
+                        </Form>
+                    </div>
                 </Tabs.TabPane>
                 <Tabs.TabPane tab={<div>Xem danh sách khóa học</div>} key="3">
                     <CourseListById uploadImage={handleImageUpload} />
