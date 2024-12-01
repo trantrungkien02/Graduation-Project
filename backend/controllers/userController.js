@@ -1,7 +1,59 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const userController = {
-  //GET ALL USERS
+  updateUserInfo: async (req, res) => {
+    try {
+      // Find user by username or email
+      const user = await User.findOne({
+        $or: [{ username: req.body.username }, { email: req.body.email }],
+      });
+
+      if (!user) {
+        return res.status(404).json('User not found');
+      }
+
+      // Update specific fields in info
+      const fieldsToUpdate = ['fullName', 'bio', 'address', 'courseCount', 'studentCount', 'avatar', 'headerImage', 'github', 'facebook', 'tiktok'];
+
+      // Loop through the fields and update only the ones provided
+      fieldsToUpdate.forEach(field => {
+        if (req.body[field] !== undefined) {
+          user.info = user.info || {}; // Ensure info object exists
+          user.info[field] = req.body[field];
+        }
+      });
+
+      // Save the updated user
+      const updatedUser = await user.save();
+      res.status(200).json(updatedUser);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  },
+  getUserInfo: async (req, res) => {
+    try {
+      // Tìm user bằng username hoặc email
+      const user = await User.findOne({
+        $or: [{ username: req.query.username }, { email: req.query.email }],
+      });
+
+      if (!user) {
+        return res.status(404).json('User not found');
+      }
+
+      // Lấy thông tin info
+      const userInfo = user.info;
+
+      if (!userInfo) {
+        return res.status(404).json('User info not found');
+      }
+
+      // Trả về thông tin info
+      res.status(200).json(userInfo);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  },
   getAllUsers: async (req, res) => {
     try {
       const user = await User.find();
@@ -24,6 +76,21 @@ const userController = {
       res.status(500).json(err); // Xử lý lỗi
     }
   },
+  getUserBySlug: async (req, res) => {
+    try {
+      const userSlug = req.params.slug; // Lấy slug từ tham số URL
+      console.log('day laf slug:', userSlug);
+      const user = await User.findOne({ slug: userSlug }); // Tìm người dùng theo slug
+
+      if (!user) {
+        return res.status(404).json({ message: 'Người dùng không tồn tại' }); // Nếu không tìm thấy người dùng
+      }
+      console.log(user);
+      res.status(200).json(user); // Trả về thông tin người dùng
+    } catch (err) {
+      res.status(500).json({ message: 'Lỗi server', error: err }); // Xử lý lỗi
+    }
+  },
 
   searchUsers: async (req, res) => {
     const { field, q } = req.query;
@@ -42,6 +109,31 @@ const userController = {
       res.status(500).json(err);
     }
   },
+  searchTeacher: async (req, res) => {
+    const { q } = req.query;
+
+    try {
+      // Nếu không có query tìm kiếm, trả về tất cả giáo viên
+      if (!q) {
+        const teachers = await User.find({ role: '2' });
+        return res.status(200).json(teachers);
+      }
+
+      // Tìm kiếm theo username hoặc fullName trong info
+      const teachers = await User.find({
+        role: '2',
+        $or: [
+          { username: { $regex: q, $options: 'i' } }, // Tìm kiếm theo username
+          { 'info.fullName': { $regex: q, $options: 'i' } },
+        ],
+      });
+      return res.status(200).json(teachers);
+    } catch (err) {
+      console.error('Error searching teachers:', err);
+      res.status(500).json({ message: 'Error searching teachers', error: err });
+    }
+  },
+
   updateUser: async (req, res) => {
     try {
       // Tìm người dùng dựa trên email

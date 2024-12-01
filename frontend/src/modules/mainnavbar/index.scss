@@ -46,6 +46,11 @@
     border-radius: 8.71px;
     background: #fff;
     box-shadow: 0 -4px 32px #0003;
+    .ant-image-img {
+        width: 48px !important;
+        height: 48px !important;
+        object-fit: cover !important;
+    }
 }
 
 .dropdown-setting {

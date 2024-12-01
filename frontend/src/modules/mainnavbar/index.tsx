@@ -73,6 +73,7 @@ function MainNavbar() {
     const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [searchTeacher, setSearchTeacher] = useState([]);
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
     // Fetch courses when component mounts
@@ -551,9 +552,11 @@ function MainNavbar() {
             <div className="flex justify-center items-center py-5 px-4 border-b border-[#DCDCDC] relative">
                 <Image
                     alt=""
-                    src={images.avtUser}
+                    src={user?.info?.avatar ? user.info.avatar : images.avtUser}
+                    width={48}
+                    height={48}
                     className="ant-image-img mt-1 absolute top-4 left-3"
-                    style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '100%' }}
+                    style={{ objectFit: 'contain', borderRadius: '100%' }}
                 />
                 <div className="flex flex-col justify-center items-start ml-12 h-[48px]">
                     <span className="font-normal text-lg leading-5">{user?.username}</span>
@@ -630,6 +633,7 @@ function MainNavbar() {
 
         if (value.trim() === '') {
             setSearchResults([]);
+            setSearchTeacher([]);
             setIsDropdownVisible(false);
             return;
         }
@@ -638,7 +642,12 @@ function MainNavbar() {
             const { data } = await axiosJWT.get(`http://localhost:8000/v1/course/searchforall`, {
                 params: { q: value },
             });
+            const { data: dataTeacher } = await axiosJWT.get(`http://localhost:8000/v1/user/searchteacher`, {
+                params: { q: value },
+                headers: { token: `Bearer ${accessToken}` },
+            });
             setSearchResults(data); // Cập nhật kết quả tìm kiếm
+            setSearchTeacher(dataTeacher);
             setIsDropdownVisible(true); // Hiển thị dropdown
         } catch (error) {
             console.error('Error fetching search results:', error);
@@ -677,43 +686,95 @@ function MainNavbar() {
 
                 {/* Dropdown hiển thị gợi ý */}
                 {searchTerm.length > 0 && isDropdownVisible ? (
-                    searchResults.length > 0 ? (
-                        <div className="absolute top-[130%] left-[6px] w-[500px] no-result">
+                    searchResults.length > 0 || searchTeacher.length > 0 ? (
+                        <div className="absolute top-[130%] left-[6px] w-[500px] max-h-[600px] !overflow-y-auto no-result">
                             <p className=" text-gray-500 text-sm py-[6px]">
                                 <SearchOutlined className="opacity-[.7] mr-1" /> Kết quả cho '{searchTerm}'
                             </p>
-                            <div className="flex items-center justify-between pt-2 pb-1 border-b border-gray-200 mb-1.5">
-                                <h5 className="text-[16px] font-medium text-[#333] m-0">KHÓA HỌC</h5>
-                                <Link className="text-[#666]" href="/search">
-                                    Xem thêm
-                                </Link>
-                            </div>
-                            <List
-                                itemLayout="horizontal"
-                                dataSource={searchResults}
-                                renderItem={(item: any) => (
-                                    <List.Item
-                                        className="cursor-pointer  transition-all w-full"
-                                        onClick={() => {
-                                            handleCourseClick(item?.slug, item?._id);
-                                        }}
-                                    >
-                                        <List.Item.Meta
-                                            avatar={<Avatar src={item?.image} />}
-                                            title={
-                                                <span className="text-[16px] overflow-hidden text-ellipsis whitespace-nowrap w-[400] block">
-                                                    {item?.name}
-                                                </span>
-                                            }
-                                            description={
-                                                <span className="overflow-hidden text-ellipsis whitespace-nowrap w-[400] block">
-                                                    {item?.des}
-                                                </span>
-                                            }
-                                        />
-                                    </List.Item>
-                                )}
-                            />
+                            {searchResults.length > 0 ? (
+                                <div>
+                                    <div className="flex items-center justify-between pt-2 pb-1 border-b border-gray-200 mb-1.5">
+                                        <h5 className="text-[16px] font-medium text-[#333] m-0">KHÓA HỌC</h5>
+                                        <Link className="text-[#666]" href="/search">
+                                            Xem thêm
+                                        </Link>
+                                    </div>
+                                    <List
+                                        itemLayout="horizontal"
+                                        dataSource={searchResults}
+                                        renderItem={(item: any) => (
+                                            <List.Item
+                                                className="cursor-pointer  transition-all w-full"
+                                                onClick={() => {
+                                                    handleCourseClick(item?.slug, item?._id);
+                                                }}
+                                            >
+                                                <List.Item.Meta
+                                                    avatar={<Avatar src={item?.image} />}
+                                                    title={
+                                                        <span className="text-[16px] overflow-hidden text-ellipsis whitespace-nowrap w-[400] block">
+                                                            {item?.name}
+                                                        </span>
+                                                    }
+                                                    description={
+                                                        <span
+                                                            className="overflow-hidden text-ellipsis whitespace-nowrap w-[400] block"
+                                                            dangerouslySetInnerHTML={{ __html: item?.tittle }}
+                                                        ></span>
+                                                    }
+                                                />
+                                            </List.Item>
+                                        )}
+                                    />
+                                </div>
+                            ) : (
+                                <div></div>
+                            )}
+                            {searchTeacher.length > 0 ? (
+                                <div>
+                                    <div className="flex items-center justify-between pt-2 pb-1 border-b border-gray-200 mb-1.5">
+                                        <h5 className="text-[16px] font-medium text-[#333] m-0">GIẢNG VIÊN</h5>
+                                        <Link className="text-[#666]" href="/search">
+                                            Xem thêm
+                                        </Link>
+                                    </div>
+                                    <List
+                                        itemLayout="horizontal"
+                                        dataSource={searchTeacher}
+                                        renderItem={(item: any) => (
+                                            <List.Item
+                                                className="cursor-pointer  transition-all w-full"
+                                                onClick={() => {
+                                                    router.push(`/teacher/${item?.slug}`);
+                                                }}
+                                            >
+                                                <List.Item.Meta
+                                                    avatar={
+                                                        <Avatar
+                                                            src={
+                                                                item?.info.avatar ||
+                                                                'https://www.gravatar.com/avatar/7cf67a48f99e0b3621388d153627210a.jpg?s=80&d=mp&r=g'
+                                                            }
+                                                        />
+                                                    }
+                                                    title={
+                                                        <span className="text-[16px] overflow-hidden text-ellipsis whitespace-nowrap w-[400] block">
+                                                            {item?.info.fullName || item?.username}
+                                                        </span>
+                                                    }
+                                                    description={
+                                                        <span className="overflow-hidden text-ellipsis whitespace-nowrap w-[400] block">
+                                                            {item?.info.tittle || 'Chưa cập nhật'}
+                                                        </span>
+                                                    }
+                                                />
+                                            </List.Item>
+                                        )}
+                                    />
+                                </div>
+                            ) : (
+                                <div></div>
+                            )}
                         </div>
                     ) : (
                         <div className="absolute top-[130%] left-[6px] w-[500px] h-[50px] no-result">

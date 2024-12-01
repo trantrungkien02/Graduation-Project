@@ -136,7 +136,7 @@ const Quiz = ({ quesList, onQuizComplete }: QuizProps) => {
                                 fill: '#555', // Màu sắc văn bản
                             },
                             path: {
-                                stroke: '#273d30', // Màu xanh lá khi submit, màu xanh dương khi chọn câu hỏi
+                                stroke: '#2c3e50', // Màu xanh lá khi submit, màu xanh dương khi chọn câu hỏi
                             },
                         }}
                     />

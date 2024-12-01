@@ -4,6 +4,7 @@ import {
     approveCourse,
     createNotify,
     deleteCourse,
+    deleteLesson,
     fetchCourseBySlug,
     getCourseById,
     getLessonBycourseId,
@@ -25,8 +26,8 @@ import {
     faUser,
 } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/navigation';
-import { Form, Input, Modal } from 'antd';
-import PaymentFormModal from '~/modules/PaymentFormModal';
+import { Form, Input, message, Modal } from 'antd';
+import PaymentFormModal from '~/modules/PaymentForBuyCourse';
 import { getCoursesOrderSuccess } from '~/redux/stateglobal/courseSlice';
 import DOMPurify from 'dompurify';
 import sanitizeCourse from '~/modules/FunctionHandle/sanitizeCourse';
@@ -42,7 +43,12 @@ interface Lesson {
     createdAt?: string;
     locked?: boolean;
 }
-
+declare global {
+    interface Window {
+        YT: any;
+        onYouTubeIframeAPIReady: () => void;
+    }
+}
 export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const [course, setCourse] = useState<any>(null);
     const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -52,6 +58,24 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     let axiosJWT = createAxios(user, dispatch, loginSuccess);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isModalVisibleRs, setIsModalVisibleRs] = useState(false);
+    const [isModalOpenLs, setIsModalOpenLs] = useState(false);
+    const [isModalVisibleLs, setIsModalVisibleLs] = useState(false);
+    const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
+    const [player, setPlayer] = useState<any>(null);
+
+    const handleLessonClick = (lesson: any) => {
+        setCurrentLesson(lesson);
+        if (user?.role === '3') {
+            setIsModalOpenLs(true);
+        } else {
+            message.error('Bạn không có quyền truy cập bài giảng này khi chưa đăng ký khóa học!');
+        }
+    };
+
+    const closeModal = () => {
+        setIsModalOpenLs(false);
+        setCurrentLesson(null);
+    };
     const [form] = Form.useForm();
     useEffect(() => {
         const fetchData = async () => {
@@ -90,6 +114,45 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
         fetchData();
     }, [params.slug]);
 
+    useEffect(() => {
+        if (currentLesson) {
+            // Load YouTube Iframe API if not already loaded
+            if (!window.YT) {
+                const tag = document.createElement('script');
+                tag.src = 'https://www.youtube.com/iframe_api';
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+                // Initialize the player once the API is ready
+                window.onYouTubeIframeAPIReady = initializePlayer;
+            } else {
+                initializePlayer();
+            }
+        }
+    }, [currentLesson]); // Ensure this runs each time currentLesson changes
+
+    const initializePlayer = () => {
+        if (!currentLesson) return;
+
+        // If player exists, destroy it before creating a new one
+        if (player) {
+            player.destroy();
+        }
+
+        const newPlayer = new window.YT.Player('video-player', {
+            videoId: currentLesson.videoId,
+            events: {
+                onStateChange: onPlayerStateChange,
+            },
+        });
+        setPlayer(newPlayer); // Update the player state to hold the new player instance
+    };
+
+    const onPlayerStateChange = async (event: any) => {
+        if (event.data === window.YT.PlayerState.ENDED) {
+            // Đánh dấu video đã kết thúc
+        }
+    };
     if (!course) {
         return (
             <div className="loading-overlay">
@@ -151,6 +214,10 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const handleRefuseClick = () => {
         setIsModalVisibleRs(true);
     };
+    const handleRefuseClickLs = () => {
+        setIsModalVisibleLs(true);
+        console.log(course);
+    };
     const handleRefuseApprove = async (courseData: any, formData: { tittle: string; des: string }) => {
         const notifyData = {
             senderId: user?._id,
@@ -160,7 +227,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
             type: 'system',
             des: formData.des, // Lấy từ form
             lessonId: '',
-            courseId: '',
+            courseId: course._id,
         };
 
         // Gửi thông báo
@@ -173,13 +240,37 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
         // Đóng modal
         setIsModalVisibleRs(false);
     };
+    const handleRefuseApproveLesson = async (lessonData: any, formData: { tittle: string; des: string }) => {
+        const notifyData = {
+            senderId: user?._id,
+            senderName: 'Admin',
+            receiverId: course.userId,
+            tittle: formData.tittle, // Lấy từ form
+            type: 'system',
+            des: formData.des, // Lấy từ form
+            lessonId: lessonData._id,
+            courseId: course._id,
+        };
 
+        // Gửi thông báo
+        await createNotify(notifyData, axiosJWT);
+        await deleteLesson(user?.accessToken, dispatch, lessonData?._id, axiosJWT);
+
+        // Đóng modal
+        setIsModalOpenLs(false);
+        setIsModalVisibleLs(false);
+        const lessonsNewData = await getLessonBycourseId(user?.accessToken, course._id, dispatch, axiosJWT);
+        setLessons(lessonsNewData);
+    };
     // Hàm xử lý khi hủy phê duyệt
     const handleCancel = () => {
         setIsModalVisible(false); // Đóng modal nếu người dùng hủy
     };
     const handleCancelRs = () => {
         setIsModalVisibleRs(false); // Đóng modal nếu người dùng hủy
+    };
+    const handleCancelLs = () => {
+        setIsModalVisibleLs(false); // Đóng modal nếu người dùng hủy
     };
     const sanitizedCourse = sanitizeCourse(course);
 
@@ -206,7 +297,22 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                 <ul className="lesson-list">
                     {lessons?.length > 0 ? (
                         lessons.map((lesson, index) => (
-                            <li key={lesson._id} className="lesson-item">
+                            <li
+                                key={lesson._id}
+                                className="lesson-item"
+                                onClick={() => handleLessonClick(lesson)}
+                                style={{
+                                    cursor: 'pointer',
+                                    border: user?.role === '3' ? '1px solid transparent' : undefined,
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (user?.role === '3')
+                                        e.currentTarget.style.boxShadow = '0px 4px 4px rgba(18, 97, 166, 0.5)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (user?.role === '3') e.currentTarget.style.boxShadow = 'none';
+                                }}
+                            >
                                 <div>
                                     <FontAwesomeIcon icon={faCirclePlay} className="mr-3 text-[18px] text-[#1261a6]" />
                                     <span className="lesson-number">Bài {index + 1}.</span>
@@ -218,6 +324,59 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                     ) : (
                         <p className="text-center text-[16px] text-gray-500">Khóa học này chưa có bài giảng nào</p>
                     )}
+                    <Modal
+                        title={`Bài giảng ${currentLesson?.name}`}
+                        open={isModalOpenLs}
+                        onCancel={closeModal}
+                        footer={null}
+                        width={800}
+                    >
+                        {currentLesson ? (
+                            <div>
+                                <div id="video-player" className="w-full"></div>
+                                <button className="register-button ml-3 !bg-red-600" onClick={handleRefuseClickLs}>
+                                    Từ chối
+                                </button>
+                                <Modal
+                                    title="Xác nhận từ chối phê duyệt bài học"
+                                    visible={isModalVisibleLs}
+                                    onOk={() => {
+                                        form.validateFields()
+                                            .then((values) => {
+                                                form.resetFields();
+                                                handleRefuseApproveLesson(currentLesson, values); // Truyền `tittle` và `des` cho bài học
+                                                setIsModalVisibleLs(false);
+                                            })
+                                            .catch((info) => {
+                                                console.log('Validate Failed:', info);
+                                            });
+                                    }}
+                                    onCancel={handleCancelLs}
+                                    okText="Từ chối"
+                                    cancelText="Hủy"
+                                >
+                                    <Form form={form} layout="vertical">
+                                        <Form.Item
+                                            label="Tiêu đề"
+                                            name="tittle"
+                                            rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
+                                        >
+                                            <Input placeholder="Nhập tiêu đề" />
+                                        </Form.Item>
+                                        <Form.Item
+                                            label="Mô tả"
+                                            name="des"
+                                            rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}
+                                        >
+                                            <Input.TextArea rows={4} placeholder="Nhập mô tả" />
+                                        </Form.Item>
+                                    </Form>
+                                </Modal>
+                            </div>
+                        ) : (
+                            <p>Không tìm thấy video</p>
+                        )}
+                    </Modal>
                 </ul>
                 <h5 className="my-4">Yêu cầu</h5>
                 <p dangerouslySetInnerHTML={{ __html: sanitizedCourse.require }} />
@@ -237,14 +396,22 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                 ></iframe>
                 <div className="course-info">
                     <h2 className="course-pricing">{course.price === 'Miễn phí' ? 'Miễn phí' : `${course.price} đ`}</h2>
-                    {user?.role === '3' && course.isPublic === false ? (
+                    {user?.role === '3' ? (
                         <div className="flex">
-                            <button className="register-button" onClick={handleApproveClick}>
-                                Phê duyệt
-                            </button>
-                            <button className="register-button ml-3 !bg-red-600" onClick={handleRefuseClick}>
-                                Từ chối
-                            </button>
+                            {course?.isPublic === false ? (
+                                <div className="flex">
+                                    <button className="register-button" onClick={handleApproveClick}>
+                                        Phê duyệt
+                                    </button>
+                                    <button className="register-button ml-3 !bg-red-600" onClick={handleRefuseClick}>
+                                        Từ chối
+                                    </button>
+                                </div>
+                            ) : (
+                                <button className="register-button ml-3 !bg-red-600" onClick={handleRefuseClick}>
+                                    Từ chối
+                                </button>
+                            )}
                             <Modal
                                 title="Xác nhận phê duyệt"
                                 visible={isModalVisible}

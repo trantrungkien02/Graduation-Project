@@ -20,13 +20,11 @@
 
     .form-edit-account {
         background-color: hsla(0, 0%, 100%, 0.4);
-        padding-top: 120px;
+        padding-top: 20px;
         padding-left: 40px;
         padding-right: 40px;
-        border-left: 1px solid #dcdcdc;
-        border-right: 1px solid #dcdcdc;
-        border-bottom: 1px solid #dcdcdc;
-        border-radius: 0 0 10px 10px;
+        border: 1px solid #dcdcdc;
+        border-radius: 10px;
 
         .ant-form-item {
             margin-bottom: 16px;
@@ -53,4 +51,8 @@
 }
 .ant-select-selector {
     border: none !important;
+}
+.ant-upload.ant-upload-select-picture-card {
+    width: 100% !important;
+    height: 100% !important;
 }

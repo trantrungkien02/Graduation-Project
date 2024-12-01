@@ -11,6 +11,7 @@ const CourseOrder = new Schema(
     transactionNo: { type: String, required: true }, // Số giao dịch
     transactionStatus: { type: String, required: true }, // Trạng thái giao dịch
     txnRef: { type: String, required: true }, // Mã tham chiếu giao dịch
+    type: { type: String, required: true }, // Mã tham chiếu giao dịch
   },
   {
     timestamps: true, // Tự động thêm `createdAt` và `updatedAt`

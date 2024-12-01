@@ -54,8 +54,6 @@ import {
     registerLessonStart,
     registerLessonSuccess,
 } from './lessonSlice';
-import NextAuth from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
 
 interface User {
     username: string;

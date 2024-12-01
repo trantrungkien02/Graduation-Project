@@ -21,6 +21,7 @@ const Course = new Schema(
     slug: { type: String, slug: 'name', unique: true },
     registrations: { type: Number, default: 0 },
     isPublic: { type: Boolean, default: false },
+    isAds: { type: String, default: '1' },
     registeredUsers: [
       {
         userId: { type: String, required: true }, // ID của người dùng đã đăng ký

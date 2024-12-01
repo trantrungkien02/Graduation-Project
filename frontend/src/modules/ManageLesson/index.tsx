@@ -237,6 +237,7 @@ const LessonList = () => {
             message.success('Thêm bài thực hành thành công!');
             setQuestions([]);
             setCurrentIndex(0);
+            form.resetFields();
             setIsModalVisiblePt(false);
             const updatedLessons = await getLessonBycourseId(user?.accessToken, selectedCourseId, dispatch, axiosJWT);
             setCurrentLessonList(updatedLessons);
@@ -255,6 +256,21 @@ const LessonList = () => {
         setCurrentIndex((prev) => prev + 1);
         console.log(currentIndex);
     };
+    const resetFormState = () => {
+        setPracticeName('');
+        setCurrentQuestion({
+            quesName: '',
+            a: '',
+            b: '',
+            c: '',
+            d: '',
+            quesCorrect: '',
+            explanation: '',
+        });
+        setCurrentIndex(0); // Nếu cần reset cả index
+        setQuestions([]);
+    };
+
     const columns = [
         {
             title: 'STT',
@@ -424,11 +440,21 @@ const LessonList = () => {
                 title="Thêm bài thực hành"
                 visible={isModalVisiblePt}
                 onCancel={() => {
+                    form.resetFields();
+                    resetFormState();
                     setIsModalVisiblePt(false);
                     setIsEditPractice(false);
                 }}
                 footer={[
-                    <Button key="cancel" onClick={() => setIsModalVisiblePt(false)}>
+                    <Button
+                        key="cancel"
+                        onClick={() => {
+                            form.resetFields();
+                            resetFormState();
+
+                            setIsModalVisiblePt(false);
+                        }}
+                    >
                         Hủy
                     </Button>,
                     <Button key="back" onClick={handlePrevious} disabled={currentIndex <= 0}>

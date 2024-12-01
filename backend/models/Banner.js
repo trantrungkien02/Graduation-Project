@@ -17,6 +17,16 @@ const bannerSchema = new mongoose.Schema({
     type: Date,
     default: Date.now, // Thời gian tạo ảnh
   },
+  endDate: {
+    type: Date,
+    required: false, // Thời gian kết thúc (tùy chọn)
+    validate: {
+      validator: function (value) {
+        return value > this.createdAt;
+      },
+      message: 'Thời gian kết thúc phải sau thời gian tạo.',
+    },
+  },
   category: {
     type: String,
     default: '', // Danh mục hoặc loại ảnh (tùy chọn)

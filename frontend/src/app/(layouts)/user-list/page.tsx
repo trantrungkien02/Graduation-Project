@@ -1,10 +1,26 @@
-import React from 'react';
+'use client';
+import { message } from 'antd';
+import { useRouter } from 'next/navigation';
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import UserList from '~/modules/UserList';
 
-type Props = {};
+const Page = () => {
+    const user = useSelector((state: any) => state.auth.login?.currentUser);
+    const router = useRouter();
 
-const page = (props: Props) => {
+    useEffect(() => {
+        if (!user || user.role !== '3') {
+            message.error('Bạn không có quyền truy cập trang này!');
+            router.push('/');
+        }
+    }, [user, router]);
+
+    if (!user || user.role !== '3') {
+        return null; // Không render nội dung nếu người dùng không có quyền
+    }
+
     return <UserList />;
 };
 
-export default page;
+export default Page;

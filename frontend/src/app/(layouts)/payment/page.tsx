@@ -5,13 +5,18 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createAxios } from '~/app/createInstance';
-import PaymentFormModal from '~/modules/PaymentFormModal';
+import PaymentForAdsCourse from '~/modules/PaymentForAdsCourse';
+import PaymentForBuyCourse from '~/modules/PaymentForBuyCourse';
+import PaymentFormModal from '~/modules/PaymentForBuyCourse';
 import { getCourseById, registerCourseForUser, updateCourseAddUser } from '~/redux/stateglobal/apiRequest';
 import { loginSuccess } from '~/redux/stateglobal/authSlice';
+import { editIsAds } from '~/redux/stateglobal/courseSlice';
 
 export default function CourseOrder() {
     const user = useSelector((state: any) => state.auth.login?.currentUser);
     const courseOrder = useSelector((state: any) => state.course.courses?.courseOrder);
+    const courseAds = useSelector((state: any) => state.course.courses?.courseAds);
+    const isAds = useSelector((state: any) => state.course.courses?.isAds);
     const router = useRouter();
     const dispatch = useDispatch();
     let axiosJWT = createAxios(user, dispatch, loginSuccess);
@@ -19,7 +24,7 @@ export default function CourseOrder() {
     const urlParams = new URLSearchParams(searchParams);
     const vnp_TransactionStatus = urlParams.get('vnp_TransactionStatus');
 
-    const paymentData = {
+    const paymentDataBuy = {
         courseName: courseOrder.name,
         senderUser: user?.username,
         receiveUser: courseOrder?.userName || '',
@@ -28,8 +33,20 @@ export default function CourseOrder() {
         bankCode: urlParams.get('vnp_BankCode'),
         transactionNo: urlParams.get('vnp_TransactionNo'),
         txnRef: urlParams.get('vnp_TxnRef'),
+        type: 'buy',
     };
-
+    const paymentDataAds = {
+        courseName: courseAds?.course?.name || '',
+        senderUser: user?.username,
+        receiveUser: 'Admin',
+        amount: urlParams.get('vnp_Amount'),
+        transactionStatus: urlParams.get('vnp_TransactionStatus'),
+        bankCode: urlParams.get('vnp_BankCode'),
+        transactionNo: urlParams.get('vnp_TransactionNo'),
+        txnRef: urlParams.get('vnp_TxnRef'),
+        type: 'ads',
+    };
+    console.log(paymentDataAds);
     const hasSavedRef = useRef(false); // Sử dụng ref để theo dõi trạng thái lưu
 
     useEffect(() => {
@@ -46,7 +63,7 @@ export default function CourseOrder() {
                     return;
                 }
 
-                const res = await axios.post(`http://localhost:8000/v1/order/add-course-order`, paymentData);
+                const res = await axios.post(`http://localhost:8000/v1/order/add-course-order`, paymentDataBuy);
                 if (res.data.message === 'success') {
                     hasSavedRef.current = true;
                     const userData = {
@@ -72,8 +89,54 @@ export default function CourseOrder() {
                 console.error(error);
             }
         };
-        handleSaveOrder();
+        const handleSaveAds = async () => {
+            try {
+                if (!vnp_TransactionStatus) {
+                    console.log('Không có trạng thái giao dịch');
+                    return;
+                }
+                if (vnp_TransactionStatus === '00') {
+                    message.success('Thanh toán thành công!');
+                } else {
+                    message.error('Thanh toán thất bại!');
+                    return;
+                }
+                console.log(courseAds);
+                const res = await axios.post(`http://localhost:8000/v1/order/add-course-order`, paymentDataAds);
+                if (res.data.message === 'success') {
+                    hasSavedRef.current = true;
+                    const bannerData = {
+                        url: courseAds?.course?.image,
+                        title: courseAds?.course?.name,
+                        description: courseAds?.course?.tittle.replace(/<\/?[^>]+(>|$)/g, ''),
+                        endDate: courseAds?.endDate,
+                    };
+                    console.log(bannerData);
+                    const response = await axios.post('http://localhost:8000/v1/banner/create', bannerData);
+                    if (response.status === 200) {
+                        message.success('Đăng ký quảng cáo thành công');
+                        dispatch(editIsAds());
+                        router.push('/');
+                    } else {
+                        message.error('Đăng ký quảng cáo thất bại');
+                        router.push('/');
+                    }
+                } else {
+                    message.error('Lưu thanh toán thất bại');
+                }
+            } catch (error) {
+                message.error('Đã xảy ra lỗi khi lưu thanh toán');
+                console.error(error);
+            }
+        };
+        if (isAds) {
+            handleSaveAds();
+        } else {
+            handleSaveOrder();
+        }
     }, []); // Chỉ phụ thuộc vào vnp_TransactionStatus
 
-    return <PaymentFormModal course={courseOrder} />;
+    return (
+        <div>{isAds ? <PaymentForAdsCourse course={courseAds} /> : <PaymentForBuyCourse course={courseOrder} />}</div>
+    );
 }

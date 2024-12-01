@@ -18,6 +18,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import ReactQuill from 'react-quill';
+import { editIsAds, getCoursesAdsSuccess } from '~/redux/stateglobal/courseSlice';
 
 const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<any> }) => {
     const user = useSelector((state: any) => state.auth.login?.currentUser);
@@ -176,7 +177,11 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
 
         form.setFieldsValue({ courseId: res?.slug }); // Gán trước courseId (ẩn trong form)
     };
-
+    const handleCreateAds = (courseData: any) => {
+        dispatch(getCoursesAdsSuccess(courseData));
+        dispatch(editIsAds());
+        router.push('/payment');
+    };
     const handleCancelCn = () => {
         setIsModalVisibleCn(false);
         form.resetFields(); // Xóa dữ liệu trong form
@@ -222,7 +227,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             title: 'Video Id',
             dataIndex: 'videoId',
             key: 'videoId',
-            width: '25%',
+            width: '15%',
         },
         {
             title: 'Giá',
@@ -259,35 +264,67 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
                     >
                         Xóa
                     </Button>
-                    <Button
-                        onClick={() => handleViewStudents(record._id)}
-                        style={{
-                            backgroundColor: '#0b3a82',
-                            borderColor: '#0b3a82',
-                            borderRadius: '5px',
-                            color: 'white',
-                            marginLeft: '20px',
-                        }}
-                    >
-                        Xem ds học viên
-                    </Button>
-                    <Button
-                        onClick={() => handleCreateNotifyForStudent(record._id)}
-                        style={{
-                            backgroundColor: '#0b3a82',
-                            borderColor: '#0b3a82',
-                            borderRadius: '5px',
-                            color: 'white',
-                            marginLeft: '20px',
-                        }}
-                    >
-                        Tạo thông báo
-                    </Button>
+
+                    {/* Check if course is not public */}
+                    {record.isPublic ? (
+                        <>
+                            <Button
+                                onClick={() => handleViewStudents(record._id)}
+                                style={{
+                                    backgroundColor: '#0b3a82',
+                                    borderColor: '#0b3a82',
+                                    borderRadius: '5px',
+                                    color: 'white',
+                                    marginLeft: '20px',
+                                }}
+                            >
+                                Xem ds học viên
+                            </Button>
+                            <Button
+                                onClick={() => handleCreateNotifyForStudent(record._id)}
+                                style={{
+                                    backgroundColor: '#0b3a82',
+                                    borderColor: '#0b3a82',
+                                    borderRadius: '5px',
+                                    color: 'white',
+                                    marginLeft: '20px',
+                                }}
+                            >
+                                Tạo thông báo
+                            </Button>
+                            <Button
+                                onClick={() => handleCreateAds(record)}
+                                style={{
+                                    backgroundColor: '#0b3a82',
+                                    borderColor: '#0b3a82',
+                                    borderRadius: '5px',
+                                    color: 'white',
+                                    marginLeft: '20px',
+                                }}
+                            >
+                                Quảng cáo khóa học
+                            </Button>
+                        </>
+                    ) : (
+                        <Button
+                            disabled
+                            style={{
+                                backgroundColor: '#d3d3d3',
+                                borderColor: '#d3d3d3',
+                                borderRadius: '5px',
+                                color: '#a0a0a0',
+                                marginLeft: '20px',
+                            }}
+                        >
+                            Chờ duyệt
+                        </Button>
+                    )}
                 </>
             ),
-            width: '30%',
+            width: '40%',
         },
     ];
+
     const modules = {
         toolbar: [
             [{ header: [1, 2, 3, false] }], // Các cấp tiêu đề
@@ -468,7 +505,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             <Modal
                 title={
                     <div>
-                        <h3>Danh sách học viên của khóa học "{editingCourse?.name}"</h3>
+                        <h5>Danh sách học viên của khóa học "{editingCourse?.name}"</h5>
                     </div>
                 }
                 visible={isModalVisibleSl}
@@ -477,7 +514,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
                 width={1200}
                 centered
             >
-                <p className="font-bold text-[20px] mb-[10px]">Tổng số học viên: {studentList.length} Học viên</p>
+                <p className="font-bold text-[16px] mb-[10px]">Tổng số học viên: {studentList.length} Học viên</p>
                 <Table
                     dataSource={studentList}
                     columns={[

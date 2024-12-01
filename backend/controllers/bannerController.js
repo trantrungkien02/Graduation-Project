@@ -19,16 +19,17 @@ const bannerController = {
 
   createImage: async (req, res) => {
     try {
-      const { url, title, description } = req.body;
+      const { url, title, description, endDate } = req.body;
 
       const newImage = new Banner({
         url,
         title,
         description,
+        endDate,
       });
 
       const savedImage = await newImage.save();
-      res.status(201).json(savedImage);
+      res.status(200).json(savedImage);
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: 'Error creating image', error: err });

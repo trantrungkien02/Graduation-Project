@@ -115,10 +115,10 @@ router.get('/vnpay_return', function (req, res, next) {
 router.post('/add-course-order', async (req, res) => {
   try {
     // Lấy dữ liệu từ request body
-    const { courseName, amount, bankCode, receiveUser, senderUser, transactionNo, transactionStatus, txnRef } = req.body;
+    const { courseName, amount, bankCode, receiveUser, senderUser, transactionNo, transactionStatus, txnRef, type } = req.body;
 
     // Kiểm tra các trường bắt buộc
-    if (!courseName || !amount || !bankCode || !receiveUser || !senderUser || !transactionNo || !transactionStatus || !txnRef) {
+    if (!courseName || !amount || !bankCode || !receiveUser || !senderUser || !transactionNo || !transactionStatus || !txnRef || !type) {
       return res.status(400).json({ message: 'Thiếu thông tin bắt buộc!' });
     }
 
@@ -132,6 +132,7 @@ router.post('/add-course-order', async (req, res) => {
       transactionNo,
       transactionStatus,
       txnRef,
+      type,
     });
 
     // Lưu vào database

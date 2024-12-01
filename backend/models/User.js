@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const slug = require('mongoose-slug-updater');
+mongoose.plugin(slug);
 
 const userSchema = new mongoose.Schema(
   {
@@ -24,6 +26,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    slug: { type: String, slug: 'username', unique: true },
     registeredCourses: [
       {
         courseId: { type: String, required: true },
@@ -33,6 +36,18 @@ const userSchema = new mongoose.Schema(
         lessonsCompleted: { type: Number, default: 0 },
       },
     ],
+    info: {
+      fullName: { type: String, required: false, default: '' },
+      bio: { type: String, required: false, default: '' },
+      address: { type: String, required: false, default: '' },
+      courseCount: { type: Number, required: false, default: '' },
+      studentCount: { type: Number, required: false, default: '' },
+      avatar: { type: String, required: false, default: '' },
+      headerImage: { type: String, required: false, default: '' },
+      github: { type: String, required: false, default: '' },
+      facebook: { type: String, required: false, default: '' },
+      tiktok: { type: String, required: false, default: '' },
+    },
   },
   { timestamps: true },
 );
