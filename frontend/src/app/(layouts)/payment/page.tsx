@@ -25,7 +25,7 @@ export default function CourseOrder() {
     const vnp_TransactionStatus = urlParams.get('vnp_TransactionStatus');
 
     const paymentDataBuy = {
-        courseName: courseOrder.name,
+        courseName: courseOrder?.name,
         senderUser: user?.username,
         receiveUser: courseOrder?.userName || '',
         amount: urlParams.get('vnp_Amount'),
@@ -107,6 +107,8 @@ export default function CourseOrder() {
                     hasSavedRef.current = true;
                     const bannerData = {
                         url: courseAds?.course?.image,
+                        courseId: courseAds?.course?._id,
+                        courseSlug: courseAds?.course?.slug,
                         title: courseAds?.course?.name,
                         description: courseAds?.course?.tittle.replace(/<\/?[^>]+(>|$)/g, ''),
                         endDate: courseAds?.endDate,

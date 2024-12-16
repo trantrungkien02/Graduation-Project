@@ -13,6 +13,7 @@ const commentRoute = require('./routes/comment');
 const notifyRoute = require('./routes/notify');
 const bannerRoute = require('./routes/banner');
 const orderRoute = require('./routes/order');
+const noteRoute = require('./routes/lessonNote');
 
 dotenv.config();
 // mongoose.connect(process.env.MONGODB_URL, () => {
@@ -24,7 +25,7 @@ async function connectDB() {
     console.log('Connected to MongoDB');
   } catch (err) {
     console.error('Error connecting to database:', err);
-    process.exit(1); // Thoát nếu kết nối không thành công
+    process.exit(1);
   }
 }
 connectDB();
@@ -46,6 +47,7 @@ app.use('/v1/comment', commentRoute);
 app.use('/v1/notify', notifyRoute);
 app.use('/v1/banner', bannerRoute);
 app.use('/v1/order', orderRoute);
+app.use('/v1/note', noteRoute);
 
 app.listen(8000, () => {
   console.log('Server is running');

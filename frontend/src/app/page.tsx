@@ -5,6 +5,7 @@ import Sidebar from '~/modules/Sidebar';
 import UserList from '~/modules/UserList';
 import './page.scss';
 import CourseList from '~/modules/CourseList';
+import Footer from '~/modules/Footer';
 export default function Home() {
     return (
         <div>
@@ -13,8 +14,9 @@ export default function Home() {
             </div>
             <div className="flex">
                 <Sidebar />
-                <div className=" content">
+                <div className=" content overflow-auto">
                     <CourseList />
+                    <Footer />
                 </div>
             </div>
         </div>

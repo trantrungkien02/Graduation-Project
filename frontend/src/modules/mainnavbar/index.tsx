@@ -281,9 +281,11 @@ function MainNavbar() {
                                         }}
                                     >
                                         <p className="font-bold mb-2">{notif.tittle}</p>
-                                        <p className="mb-4 overflow-hidden text-ellipsis whitespace-nowrap">
-                                            {notif.des}
-                                        </p>
+                                        <p
+                                            className="mb-4 overflow-hidden text-ellipsis whitespace-nowrap"
+                                            dangerouslySetInnerHTML={{ __html: notif.des }}
+                                        ></p>
+
                                         <div className="flex justify-between">
                                             <p className="text-xs text-gray-500 absolute bottom-2 left-4">
                                                 <FontAwesomeIcon icon={faUser} className=" text-[10px] text-gray-500" />

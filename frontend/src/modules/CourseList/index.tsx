@@ -39,7 +39,21 @@ const CourseList = () => {
         const fetchBanners = async () => {
             try {
                 const response = await axios.get('http://localhost:8000/v1/banner/getallbanner');
-                setBanners(response.data);
+                const banners = response.data;
+
+                // Lọc danh sách banner có endDate <= ngày hiện tại
+                const now = new Date();
+                const expiredBanners = banners.filter(
+                    (banner: any) => new Date(banner.endDate).getTime() <= now.getTime(),
+                );
+
+                // Gọi API delete cho từng banner hết hạn
+                for (const banner of expiredBanners) {
+                    await axios.delete(`http://localhost:8000/v1/banner/delete/${banner._id}`);
+                }
+
+                // Cập nhật danh sách banner sau khi xóa
+                setBanners(banners.filter((banner: any) => !expiredBanners.includes(banner)));
             } catch (error) {
                 console.error('Error fetching banners:', error);
             }
@@ -88,7 +102,7 @@ const CourseList = () => {
         speed: 500,
         slidesToShow: 1,
         slidesToScroll: 1,
-        autoplay: false,
+        autoplay: true,
         autoplaySpeed: 3000,
         arrows: false,
     };
@@ -96,46 +110,62 @@ const CourseList = () => {
 
     return (
         <div className="w-[calc(100vw-120px)] pl-[40px] pr-[50px]">
-            <div className="mt-[18px] pb-3 relative">
-                <LeftOutlined
-                    className="left-btn"
-                    onClick={() => {
-                        console.log('Prev clicked');
-                        sliderRef.current?.slickPrev();
-                    }}
-                />
-                <Slider ref={sliderRef} {...settings}>
-                    {banners.map((banner) => (
-                        <div className="!flex !items-center !justify-between bg-gradient-to-r from-[#626466] to-[#d6dcf1] rounded-lg p-8">
-                            {/* Left Content */}
-                            <div className="text-white max-w-lg flex flex-col ">
-                                <h1 className="text-4xl font-bold mb-4 text-white">{banner.title}</h1>
-
-                                <p className="text-lg mb-6">{banner.description}</p>
-                                <button className="px-6 py-3 hover:shadow-lg bg-[#f5f5f5] text-[#1261a6] font-medium rounded-lg  transition duration-300">
-                                    Xem ngay
-                                </button>
-                            </div>
-
-                            {/* Right Content with Image */}
-                            <div className="">
-                                <img
-                                    src={banner.url}
-                                    alt="Banner"
-                                    width={500}
-                                    height={300}
-                                    className="rounded-[16px] object-contain"
-                                />
-                            </div>
+            <div className="mt-[18px] pb-3 relative h-[368px]">
+                {banners.length > 1 ? (
+                    <>
+                        <LeftOutlined className="left-btn" onClick={() => sliderRef.current?.slickPrev()} />
+                        <Slider ref={sliderRef} {...settings}>
+                            {banners.map((banner) => (
+                                <div className="!flex !items-center !justify-between bg-gradient-to-r from-[#626466] to-[#d6dcf1] rounded-lg p-8 h-[368px]">
+                                    <div className="text-white max-w-lg flex flex-col">
+                                        <h1 className="text-4xl font-bold mb-4 text-white">{banner?.title}</h1>
+                                        <p className="text-lg mb-6">{banner?.description}</p>
+                                        <button
+                                            className="px-6 py-3 hover:shadow-lg bg-[#f5f5f5] text-[#1261a6] font-medium rounded-lg transition duration-300"
+                                            onClick={() => handleCourseClick(banner?.courseSlug, banner?.courseId)}
+                                        >
+                                            Xem ngay
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <img
+                                            src={banner?.url}
+                                            alt="Banner"
+                                            width={500}
+                                            height={300}
+                                            className="rounded-[16px] object-contain max-h-[300px]"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </Slider>
+                        <RightOutlined className="right-btn" onClick={() => sliderRef.current?.slickNext()} />
+                    </>
+                ) : (
+                    <div className="!flex !items-center !justify-between bg-gradient-to-r from-[#626466] to-[#d6dcf1] rounded-lg p-8 h-[368px]">
+                        <div className="text-white max-w-lg flex flex-col">
+                            <h1 className="text-4xl font-bold mb-4 text-white">{banners[0]?.title}</h1>
+                            <p className="text-lg mb-6">{banners[0]?.description}</p>
+                            <button
+                                className="px-6 py-3 hover:shadow-lg bg-[#f5f5f5] text-[#1261a6] font-medium rounded-lg transition duration-300"
+                                onClick={() => handleCourseClick(banners[0]?.courseSlug, banners[0]?.courseId)}
+                            >
+                                Xem ngay
+                            </button>
                         </div>
-                    ))}
-                </Slider>
-
-                <RightOutlined
-                    className="right-btn"
-                    onClick={() => sliderRef.current && sliderRef.current.slickNext()}
-                />
+                        <div>
+                            <img
+                                src={banners[0]?.url}
+                                alt="Banner"
+                                width={500}
+                                height={300}
+                                className="rounded-[16px] object-contain max-h-[300px]"
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
+
             <div className="">
                 <div className="course-title">Danh sách khóa học</div>
                 <div className="grid grid-cols-5 gap-6 w-full">
@@ -157,7 +187,7 @@ const CourseList = () => {
                                 />
                             </Link>
                             <div className="flex-1 flex flex-col gap-3 p-4 px-5">
-                                <h3 className="text-[18px] font-semibold">{course.name}</h3>
+                                <h3 className="text-[18px] font-semibold min-h-[54px]">{course.name}</h3>
                                 <div className="flex items-center gap-2 mb-4">
                                     <span className="text-[16px] font-semibold text-[#f05123]">
                                         {course.price != 'Miễn phí' ? `${course.price} đ` : 'Miễn phí'}

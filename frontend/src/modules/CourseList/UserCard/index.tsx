@@ -13,7 +13,7 @@ const UserCard = ({ user }: any) => {
     let axiosJWT = createAxios(currentUser, dispatch, loginSuccess);
     return (
         <div
-            className="bg-white rounded-lg shadow-lg overflow-hidden max-w-sm mx-auto"
+            className="bg-white rounded-lg shadow-lg overflow-hidden max-w-sm mx-auto course-item"
             onClick={() => router.push(`/teacher/${user?.slug}`)}
         >
             {/* Header Image */}
@@ -56,7 +56,7 @@ const UserCard = ({ user }: any) => {
             </div>
 
             {/* Follow Button */}
-            <button className="w-full bg-green-500 text-white py-2 font-semibold hover:bg-green-600">Follow</button>
+            <button className="w-full bg-[#3d567f] text-white py-2 font-semibold hover:bg-[#213556]">Xem Ngay</button>
         </div>
     );
 };

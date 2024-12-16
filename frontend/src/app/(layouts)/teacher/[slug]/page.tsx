@@ -68,7 +68,7 @@ export default function Myteacher({ params }: UserProps) {
         }
     };
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen">
             {/* Header Section */}
             <div
                 className={`relative h-[300px] flex justify-center items-center w-[1700px] rounded-b-md mx-auto ${
@@ -80,7 +80,7 @@ export default function Myteacher({ params }: UserProps) {
                     backgroundImage: teacher?.info.headerImage ? `url(${teacher.info.headerImage})` : undefined,
                 }}
             >
-                <h1 className="text-2xl font-mono text-white">document.write('Hello, World');</h1>
+                <h1 className="text-2xl font-mono text-white"></h1>
             </div>
 
             {/* Profile Section */}
@@ -102,7 +102,7 @@ export default function Myteacher({ params }: UserProps) {
                 </div>
             </div>
 
-            <div className="w-[calc(100vw-120px)] pl-[40px] pr-[50px] mt-3 flex justify-center">
+            <div className="w-[calc(100vw-140px)] pl-[40px] pr-[26px] mt-3 flex justify-center">
                 <div
                     className={`grid ${courseData && courseData?.length < 5 ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 justify-items-center' : 'grid-cols-5'} gap-6 w-full`}
                 >
@@ -111,7 +111,7 @@ export default function Myteacher({ params }: UserProps) {
                         ?.map((course: any) => (
                             <div
                                 key={course._id}
-                                className="course-item"
+                                className="course-item w-[323.59px]"
                                 onClick={() => handleCourseClick(course.slug, course._id)}
                             >
                                 <Link

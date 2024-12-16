@@ -177,6 +177,7 @@ const LessonList = () => {
             setIsAddModalVisible(false);
             const updatedLessons = await getLessonBycourseId(user?.accessToken, selectedCourseId, dispatch, axiosJWT);
             setCurrentLessonList(updatedLessons); // Update current lessons
+            form.resetFields();
         } catch (error) {
             console.error('Thêm bài giảng thất bại:', error);
         }

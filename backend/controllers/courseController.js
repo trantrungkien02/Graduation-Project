@@ -146,10 +146,7 @@ const courseController = {
       // Tìm kiếm mặc định theo name và des
       const courses = await Course.find({
         isPublic: true,
-        $or: [
-          { name: { $regex: q, $options: 'i' } }, // Tìm kiếm theo name (không phân biệt hoa thường)
-          { des: { $regex: q, $options: 'i' } }, // Tìm kiếm theo des (không phân biệt hoa thường)
-        ],
+        $or: [{ name: { $regex: q, $options: 'i' } }, { tittle: { $regex: q, $options: 'i' } }],
       });
 
       return res.status(200).json(courses);

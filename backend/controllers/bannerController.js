@@ -6,10 +6,6 @@ const bannerController = {
       // Truy vấn và sắp xếp các ảnh theo trường createdAt từ mới nhất đến cũ nhất
       const images = await Banner.find().sort({ createdAt: -1 });
 
-      if (!images || images.length === 0) {
-        return res.status(404).json({ message: 'No images found' });
-      }
-
       res.status(200).json(images);
     } catch (err) {
       console.error(err);
@@ -19,10 +15,12 @@ const bannerController = {
 
   createImage: async (req, res) => {
     try {
-      const { url, title, description, endDate } = req.body;
+      const { url, courseId, courseSlug, title, description, endDate } = req.body;
 
       const newImage = new Banner({
         url,
+        courseId,
+        courseSlug,
         title,
         description,
         endDate,

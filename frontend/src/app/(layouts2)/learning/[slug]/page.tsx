@@ -31,9 +31,11 @@ import {
     faEllipsis,
     faSpinner,
     faFileLines,
+    faPen,
+    faTrash,
 } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/navigation';
-import { Button, Dropdown, Menu, message, Modal } from 'antd';
+import { Button, Dropdown, Form, Input, List, Menu, message, Modal } from 'antd';
 import Link from 'next/link';
 import CommentForm from '~/modules/Comment';
 import axios from 'axios';
@@ -89,6 +91,14 @@ type Comment = {
     replies: Reply[];
 };
 
+interface Note {
+    _id: string;
+    courseId: string;
+    lessonId: string;
+    lessonName: string;
+    text: string;
+}
+
 declare global {
     interface Window {
         YT: any;
@@ -110,6 +120,14 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const [isQuizPassed, setIsQuizPassed] = useState(false);
     const [videoEnded, setVideoEnded] = useState(false);
     const [isQuill, setIsQuill] = useState(false);
+    const [noteContent, setNoteContent] = useState('');
+    const [isModalVisibleNote, setIsModalVisibleNote] = useState(false);
+    const [isModalListNote, setIsModalListNote] = useState(false);
+    const [notes, setNotes] = useState<Note[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [isEditing, setIsEditing] = useState(null);
+    const [editedText, setEditedText] = useState('');
+    const [currentNotes, setCurrentNotes] = useState(notes || []);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isEditComment, setIsEditComment] = useState(false);
     const dispatch = useDispatch();
@@ -497,7 +515,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
 
     const insertMentionWithColor = (fullName: string) => {
         const mentionText = `@${fullName}:  `; // Thêm dấu cách sau tên người dùng
-        const coloredMention = `<span style="color: #0073b1;">${mentionText}</span>`; // Đặt màu xanh cho tên người dùng
+        const coloredMention = `${mentionText}`; // Đặt màu xanh cho tên người dùng
         setValueQuillRecomment(fullName === user.username ? '' : coloredMention); // Cập nhật giá trị của Quill với tên người dùng
 
         // Đặt vị trí con trỏ ngay sau tên người dùng + dấu cách
@@ -509,6 +527,85 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                 editor.setSelection(mentionLength, mentionLength); // Đặt con trỏ ngay sau tên người dùng và dấu cách
             }
         }, 0);
+    };
+
+    const showModalNote = () => {
+        setIsModalVisibleNote(true);
+    };
+
+    // Ẩn modal
+    const handleCancelNote = () => {
+        setIsModalVisibleNote(false);
+        setNoteContent('');
+    };
+
+    // Lưu ghi chú
+    const handleSaveNote = async (lesson: any) => {
+        console.log('Content:', noteContent);
+        const dataNote = {
+            userId: user?._id,
+            courseId: course?._id,
+            lessonId: lesson?._id,
+            lessonName: lesson.name,
+            text: noteContent,
+        };
+        console.log(dataNote);
+        const response = await axios.post('http://localhost:8000/v1/note/create', dataNote);
+        if (response.status === 200) {
+            message.success('Bạn đã thêm ghi chú thành công');
+        } else {
+            message.error('Thêm ghi chú thất bại');
+        }
+        setIsModalVisibleNote(false);
+        setNoteContent('');
+    };
+    const fetchNotes = async () => {
+        try {
+            const response = await axios.get(`http://localhost:8000/v1/note/getnotebyid/${course?._id}/${user?._id}`);
+            console.log(response);
+            setNotes(response.data);
+        } catch (error) {
+            console.error('Error fetching notes:', error);
+        }
+    };
+
+    const showModalListNote = async () => {
+        setIsModalListNote(true);
+        await fetchNotes();
+    };
+
+    const handleEditClick = (index: any, noteText: any) => {
+        setIsEditing(index);
+        setEditedText(noteText);
+    };
+
+    const handleSaveEdit = async (noteId: any) => {
+        console.log(editedText, noteId);
+        const noteEdit = {
+            text: editedText,
+        };
+        const response = await axios.put('http://localhost:8000/v1/note/update/' + noteId, noteEdit);
+        if (response.status === 200) {
+            message.success('Bạn đã sửa ghi chú thành công');
+            await fetchNotes();
+        } else {
+            message.error('Sửa ghi chú thất bại');
+        }
+        setIsEditing(null);
+    };
+
+    const handleDeleteNote = async (noteId: any) => {
+        const response = await axios.delete('http://localhost:8000/v1/note/delete/' + noteId);
+        fetchNotes();
+        if (response.status === 200) {
+            message.success('Bạn đã xóa ghi chú thành công');
+        } else {
+            message.error('Xóa ghi chú thất bại');
+        }
+        setIsEditing(null);
+    };
+    const handleCancelEdit = () => {
+        setIsEditing(null);
     };
     return (
         <div className="h-full">
@@ -566,12 +663,97 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                 : 'Loading...'}
                         </span>
                     </div>
-                    <a href="#">
+                    <div className="" onClick={showModalListNote}>
                         <FontAwesomeIcon icon={faNoteSticky} className="ml-5 text-[14px] text-[#fff]" /> Ghi chú
-                    </a>
-                    <a href="#">
+                    </div>
+                    <Modal
+                        title="Danh sách ghi chú"
+                        visible={isModalListNote}
+                        onCancel={() => setIsModalListNote(false)} // Đảm bảo gắn đúng sự kiện này
+                        footer={null}
+                        width={825}
+                        style={{ top: 0, position: 'absolute', right: 0, bottom: 0 }}
+                        className="modal-note"
+                    >
+                        {loading ? (
+                            <p>Đang tải...</p>
+                        ) : notes.length > 0 ? (
+                            <div>
+                                {notes.map((note, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex justify-between items-center bg-[#f7f8fa] p-2 mb-2"
+                                    >
+                                        <div className="w-full">
+                                            <div className="note-header">
+                                                <div className="ant-modal-title mb-2">{note.lessonName}</div>
+                                            </div>
+                                            <div className="">
+                                                {isEditing === index ? (
+                                                    <div>
+                                                        <ReactQuill
+                                                            theme="snow"
+                                                            value={editedText}
+                                                            onChange={(value) => setEditedText(value)}
+                                                        />
+                                                        <div className="flex mt-3">
+                                                            <Button
+                                                                type="primary"
+                                                                onClick={() => handleSaveEdit(note?._id)}
+                                                                className="rounded-[10px] w-[60px] h-[30px] mr-3 text-center"
+                                                            >
+                                                                Lưu
+                                                            </Button>
+                                                            <Button
+                                                                type="primary"
+                                                                onClick={handleCancelEdit}
+                                                                className="rounded-[10px] w-[60px] h-[30px]"
+                                                            >
+                                                                Hủy
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div dangerouslySetInnerHTML={{ __html: note.text }} />
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="note-actions">
+                                            {isEditing === index ? (
+                                                <div></div>
+                                            ) : (
+                                                <div className="flex">
+                                                    <button
+                                                        onClick={() => handleEditClick(index, note.text)}
+                                                        className="edit-btn"
+                                                    >
+                                                        <FontAwesomeIcon
+                                                            icon={faPen}
+                                                            className="mr-3 text-[16px] text-[#000]"
+                                                        />
+                                                    </button>
+                                                    <button
+                                                        className="delete-btn"
+                                                        onClick={() => handleDeleteNote(note._id)}
+                                                    >
+                                                        <FontAwesomeIcon
+                                                            icon={faTrash}
+                                                            className=" text-[16px] text-[#000]"
+                                                        />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-center">Không có ghi chú nào cho khóa học này.</p>
+                        )}
+                    </Modal>
+                    <div>
                         <FontAwesomeIcon icon={faCircleQuestion} className="ml-5 text-[14px] text-[#fff]" /> Hướng dẫn
-                    </a>
+                    </div>
                 </div>
             </div>
             <div className="flex">
@@ -585,10 +767,45 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                         <div id="video-player" className="w-full h-[686px]"></div>
                     )}
                     <div className="w-full py-10 px-[100px]">
-                        <h1 className="text-3xl font-bold mb-2">{selectedLesson.name}</h1>
-                        {selectedLesson.createdAt && (
-                            <p className="text-gray-500 mb-5"> Cập nhật&nbsp;{formatDate(selectedLesson.createdAt)}</p>
-                        )}
+                        <div className="flex justify-between">
+                            <div>
+                                <h1 className="text-3xl font-bold mb-2">{selectedLesson.name}</h1>
+                                {selectedLesson.createdAt && (
+                                    <p className="text-gray-500 mb-5">
+                                        {' '}
+                                        Cập nhật&nbsp;{formatDate(selectedLesson.createdAt)}
+                                    </p>
+                                )}
+                            </div>
+                            <Button
+                                type="primary"
+                                onClick={showModalNote}
+                                className="ant-btn-primary-custom p-2 inline-flex items-center justify-center rounded-md transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white bg-[#1261a6] border-none font-semibold text-base h-11 w-[160px] mb-4"
+                            >
+                                Thêm ghi chú
+                            </Button>
+                            <Modal
+                                title="Thêm ghi chú"
+                                visible={isModalVisibleNote}
+                                onCancel={handleCancelNote}
+                                onOk={() => handleSaveNote(selectedLesson)}
+                                okText="Lưu"
+                                cancelText="Hủy"
+                            >
+                                <Form layout="vertical">
+                                    <Form.Item label="Tên bài giảng" required>
+                                        <Input value={selectedLesson?.name} placeholder="Nhập tên bài giảng" readOnly />
+                                    </Form.Item>
+                                    <Form.Item label="Nội dung ghi chú">
+                                        <ReactQuill
+                                            value={noteContent}
+                                            onChange={setNoteContent}
+                                            placeholder="Nhập nội dung ghi chú"
+                                        />
+                                    </Form.Item>
+                                </Form>
+                            </Modal>
+                        </div>
                         <p className="text-lg mb-4">
                             Tham gia các cộng đồng để cùng học hỏi, chia sẻ kinh nghiệm học tập và làm việc nhé!
                         </p>
@@ -798,9 +1015,12 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                                                                         ).toLocaleString()}
                                                                                     </span>
                                                                                 </div>
-                                                                                <p className="reply-text">
-                                                                                    {reply.text}
-                                                                                </p>
+                                                                                <p
+                                                                                    className="reply-text"
+                                                                                    dangerouslySetInnerHTML={{
+                                                                                        __html: reply.text,
+                                                                                    }}
+                                                                                ></p>
                                                                                 <div className="comment-actions justify-between">
                                                                                     <div className="flex">
                                                                                         <span className="mr-3">
@@ -823,7 +1043,9 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                                                                         overlay={
                                                                                             <Menu>
                                                                                                 {reply.userId ===
-                                                                                                user._id ? (
+                                                                                                    user._id ||
+                                                                                                course.userId ===
+                                                                                                    user._id ? (
                                                                                                     <>
                                                                                                         <Menu.Item
                                                                                                             key="edit"
@@ -939,7 +1161,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                         </Modal>
                     </div>
                 </div>
-                <div className="w-1/4 px-3">
+                <div className="w-1/4 pl-3">
                     <div className="detail-course">Nội dung khóa học</div>
                     <ul className="lesson-list">
                         {lessons.map((lesson, index) => {
@@ -985,7 +1207,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                                     />
                                                 ) : null}
 
-                                                <span className="text-[14px]">{lesson.duration || '00:00:00'} </span>
+                                                <span className="text-[14px]">{lesson.duration || '00:00'} </span>
                                             </div>
                                         </div>
                                         <div className="ml-4">

@@ -19,10 +19,15 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import ReactQuill from 'react-quill';
 import { editIsAds, getCoursesAdsSuccess } from '~/redux/stateglobal/courseSlice';
+import { faSmileWink } from '@fortawesome/free-regular-svg-icons';
 
+interface Banner {
+    endDate: Date;
+}
 const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<any> }) => {
     const user = useSelector((state: any) => state.auth.login?.currentUser);
-    const courseList = useSelector((state: any) => state.course.courses?.allCoursesById ?? []); // Ensure it's an array
+    const isAds = useSelector((state: any) => state.course.courses?.isAds);
+    const courseList = useSelector((state: any) => state.course.courses?.allCoursesById ?? []);
     const lessonList = useSelector((state: any) => state.lesson.lesson?.allLessonsById ?? []);
     const dispatch = useDispatch();
     const router = useRouter();
@@ -41,6 +46,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imageUrlEdit, setImageUrlEdit] = useState<string>('');
     const [isUploading, setIsUploading] = useState(false); // State để theo dõi quá trình tải ảnh
+    const [banners, setBanners] = useState<any[]>([]);
     const [requireValue, setRequireValue] = useState('<ul><li>ok</li><li>ok</li></ul>');
     const [resultValue, setResultValue] = useState('');
     const [desValue, setDesValue] = useState('');
@@ -53,6 +59,15 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
         if (user?.accessToken) {
             getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
         }
+        const fetchBanners = async () => {
+            try {
+                const response = await axiosJWT.get('http://localhost:8000/v1/banner/getallbanner');
+                setBanners(response.data);
+            } catch (error) {
+                console.error('Error fetching banners:', error);
+            }
+        };
+        fetchBanners();
     }, []);
 
     useEffect(() => {
@@ -134,6 +149,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
         setIsModalVisible(false);
         setImageUrlEdit('');
         getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
+        form.resetFields();
     };
 
     const handleViewStudents = async (courseId: string) => {
@@ -150,18 +166,20 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             message.error('Khóa học của bạn chưa đăng bài giảng nào.');
             return;
         }
-        const course = courseList.find((c: any) => c._id === courseId);
-        if (course) {
-            // Tạo bản sao của registeredUsers để không thay đổi trực tiếp đối tượng gốc
-            const updatedRegisteredUsers = course.registeredUsers.map((user: any) => {
-                return {
-                    ...user, // Giữ nguyên các thuộc tính của user
-                    courseLength: res.data.length, // Thêm thuộc tính courseLength
-                };
-            });
+        if (courseList) {
+            const course = courseList.find((c: any) => c._id === courseId);
+            if (course) {
+                // Tạo bản sao của registeredUsers để không thay đổi trực tiếp đối tượng gốc
+                const updatedRegisteredUsers = course.registeredUsers.map((user: any) => {
+                    return {
+                        ...user, // Giữ nguyên các thuộc tính của user
+                        courseLength: res.data.length, // Thêm thuộc tính courseLength
+                    };
+                });
 
-            // Cập nhật lại studentList với mảng đã được chỉnh sửa
-            setStudentList(updatedRegisteredUsers);
+                // Cập nhật lại studentList với mảng đã được chỉnh sửa
+                setStudentList(updatedRegisteredUsers);
+            }
         }
         setIsModalVisibleSl(true);
     };
@@ -177,10 +195,18 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
 
         form.setFieldsValue({ courseId: res?.slug }); // Gán trước courseId (ẩn trong form)
     };
-    const handleCreateAds = (courseData: any) => {
-        dispatch(getCoursesAdsSuccess(courseData));
-        dispatch(editIsAds());
-        router.push('/payment');
+    const handleCreateAds = async (courseData: any) => {
+        const response = await axiosJWT.get('http://localhost:8000/v1/banner/getallbanner');
+        console.log(response.data.length);
+        if (response.data.length <= 10) {
+            if (isAds === false) {
+                dispatch(editIsAds());
+            }
+            dispatch(getCoursesAdsSuccess(courseData));
+            router.push('/payment');
+        } else {
+            message.error('Số lượng quảng cáo đã vượt quá giới hạn. Vui lòng thử lại sau!');
+        }
     };
     const handleCancelCn = () => {
         setIsModalVisibleCn(false);
@@ -233,95 +259,117 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             title: 'Giá',
             dataIndex: 'price',
             key: 'price',
-            width: '15%',
+            width: '10%',
         },
         {
             title: 'Hành động',
             key: 'actions',
-            render: (text: any, record: any) => (
-                <>
-                    <Button
-                        style={{
-                            backgroundColor: '#ffc107',
-                            borderColor: '#ffc107',
-                            borderRadius: '5px',
-                            color: 'white',
-                            marginLeft: '20px',
-                        }}
-                        onClick={() => handleEdit(record._id)}
-                    >
-                        Sửa
-                    </Button>
-                    <Button
-                        onClick={() => handleDelete(record._id)}
-                        style={{
-                            backgroundColor: '#b80000',
-                            borderColor: '#b80000',
-                            borderRadius: '5px',
-                            color: 'white',
-                            marginLeft: '20px',
-                        }}
-                    >
-                        Xóa
-                    </Button>
+            render: (text: any, record: any) => {
+                // Kiểm tra xem khóa học có trong danh sách banner hay không
+                const banner = banners.find((b: any) => b.courseSlug === record.slug);
+                const now = new Date();
+                const remainingTime = banner && new Date(banner.endDate).getTime() - now.getTime();
 
-                    {/* Check if course is not public */}
-                    {record.isPublic ? (
-                        <>
-                            <Button
-                                onClick={() => handleViewStudents(record._id)}
-                                style={{
-                                    backgroundColor: '#0b3a82',
-                                    borderColor: '#0b3a82',
-                                    borderRadius: '5px',
-                                    color: 'white',
-                                    marginLeft: '20px',
-                                }}
-                            >
-                                Xem ds học viên
-                            </Button>
-                            <Button
-                                onClick={() => handleCreateNotifyForStudent(record._id)}
-                                style={{
-                                    backgroundColor: '#0b3a82',
-                                    borderColor: '#0b3a82',
-                                    borderRadius: '5px',
-                                    color: 'white',
-                                    marginLeft: '20px',
-                                }}
-                            >
-                                Tạo thông báo
-                            </Button>
-                            <Button
-                                onClick={() => handleCreateAds(record)}
-                                style={{
-                                    backgroundColor: '#0b3a82',
-                                    borderColor: '#0b3a82',
-                                    borderRadius: '5px',
-                                    color: 'white',
-                                    marginLeft: '20px',
-                                }}
-                            >
-                                Quảng cáo khóa học
-                            </Button>
-                        </>
-                    ) : (
+                return (
+                    <>
                         <Button
-                            disabled
                             style={{
-                                backgroundColor: '#d3d3d3',
-                                borderColor: '#d3d3d3',
+                                backgroundColor: '#ffc107',
+                                borderColor: '#ffc107',
                                 borderRadius: '5px',
-                                color: '#a0a0a0',
+                                color: 'white',
+                                marginLeft: '20px',
+                            }}
+                            onClick={() => handleEdit(record._id)}
+                        >
+                            Sửa
+                        </Button>
+                        <Button
+                            onClick={() => handleDelete(record._id)}
+                            style={{
+                                backgroundColor: '#b80000',
+                                borderColor: '#b80000',
+                                borderRadius: '5px',
+                                color: 'white',
                                 marginLeft: '20px',
                             }}
                         >
-                            Chờ duyệt
+                            Xóa
                         </Button>
-                    )}
-                </>
-            ),
-            width: '40%',
+
+                        {/* Check if course is public */}
+                        {record.isPublic ? (
+                            <>
+                                <Button
+                                    onClick={() => handleViewStudents(record._id)}
+                                    style={{
+                                        backgroundColor: '#0b3a82',
+                                        borderColor: '#0b3a82',
+                                        borderRadius: '5px',
+                                        color: 'white',
+                                        marginLeft: '20px',
+                                    }}
+                                >
+                                    Xem ds học viên
+                                </Button>
+                                <Button
+                                    onClick={() => handleCreateNotifyForStudent(record._id)}
+                                    style={{
+                                        backgroundColor: '#0b3a82',
+                                        borderColor: '#0b3a82',
+                                        borderRadius: '5px',
+                                        color: 'white',
+                                        marginLeft: '20px',
+                                    }}
+                                >
+                                    Tạo thông báo
+                                </Button>
+                                {banner && remainingTime > 0 ? (
+                                    <Button
+                                        style={{
+                                            backgroundColor: '#15919B',
+                                            borderColor: '#15919B',
+                                            borderRadius: '5px',
+                                            color: 'white',
+                                            marginLeft: '20px',
+                                        }}
+                                        disabled
+                                    >
+                                        Quảng cáo còn {Math.ceil(remainingTime / (1000 * 60 * 60 * 24))} ngày
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        onClick={() => handleCreateAds(record)}
+                                        style={{
+                                            backgroundColor: '#0b3a82',
+                                            borderColor: '#0b3a82',
+                                            borderRadius: '5px',
+                                            color: 'white',
+                                            marginLeft: '20px',
+                                        }}
+                                    >
+                                        Quảng cáo khóa học
+                                    </Button>
+                                )}
+                            </>
+                        ) : (
+                            <Button
+                                disabled
+                                style={{
+                                    backgroundColor: '#d3d3d3',
+                                    borderColor: '#d3d3d3',
+                                    borderRadius: '5px',
+                                    color: '#a0a0a0',
+                                    marginLeft: '20px',
+                                }}
+                            >
+                                Chờ duyệt
+                            </Button>
+                        )}
+                    </>
+                );
+            },
+            width: '45%',
         },
     ];
 

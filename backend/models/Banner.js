@@ -5,6 +5,14 @@ const bannerSchema = new mongoose.Schema({
     type: String,
     required: true, // URL của ảnh là bắt buộc
   },
+  courseId: {
+    type: String,
+    required: false,
+  },
+  courseSlug: {
+    type: String,
+    required: false,
+  },
   title: {
     type: String,
     default: '', // Tiêu đề ảnh (tùy chọn)

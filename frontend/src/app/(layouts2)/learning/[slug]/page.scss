@@ -21,6 +21,8 @@
     min-height: 33px;
 }
 .lesson-list {
+    height: calc(100vh - 132px);
+    overflow: auto;
     list-style-type: none; /* Remove default bullets */
     counter-reset: lesson-counter; /* Initialize a counter */
     padding-left: 0;
@@ -206,7 +208,7 @@
     overflow: hidden !important;
 
     .ant-modal-body {
-        padding-right: 10px !important;
+        // padding-right: 0px !important;
     }
 }
 .drop-comment {
@@ -216,4 +218,9 @@
 }
 .ql-align-center {
     text-align: center;
+}
+.modal-note {
+    .ant-modal-content {
+        height: 911px;
+    }
 }

@@ -170,30 +170,30 @@ const notifyController = {
       }
 
       // Lấy danh sách courseId từ registeredCourses
-      const registeredCourseIds = user.registeredCourses.map(course => course.courseId);
+      const registeredCourseIds = user.registeredCourses.map(course => course.courseSlug);
 
-      // Điều kiện truy vấn thông báo
+      // Điều kiện cơ bản cho thông báo
       const conditions = [
         { receiverId }, // Thông báo dành riêng cho người dùng
         { isGlobal: true }, // Thông báo toàn hệ thống
-        { courseId: { $in: registeredCourseIds } }, // Thông báo liên quan đến khóa học đã đăng ký
+        {
+          courseId: { $in: registeredCourseIds }, // Thông báo liên quan đến các khóa học đã đăng ký
+          type: 'course-notification',
+        },
       ];
-
+      console.log(role === '2');
       // Thêm điều kiện dựa vào role
       if (role === '1') {
         conditions.push({ role: 1 });
       } else if (role === '2') {
         conditions.push({ role: 2 });
       }
-
-      // Cập nhật thông báo chưa đọc
-      await Notification.updateMany(
-        { $or: conditions, readBy: { $ne: receiverId } }, // Loại trừ thông báo đã được đọc bởi người dùng
-        { $addToSet: { readBy: receiverId } }, // Thêm người dùng vào danh sách đã đọc
-      );
-
-      // Truy vấn lại danh sách thông báo
-      const notifications = await Notification.find({ $or: conditions }).sort({ createdAt: -1 });
+      console.log(conditions);
+      await Notification.updateMany({ $or: conditions, readBy: { $ne: receiverId } }, { $addToSet: { readBy: receiverId } });
+      // Tìm thông báo
+      const notifications = await Notification.find({
+        $or: conditions,
+      }).sort({ createdAt: -1 }); // Sắp xếp từ mới nhất đến cũ nhất
 
       res.status(200).json(notifications);
     } catch (err) {

@@ -25,13 +25,12 @@ body {
     }
 }
 ::-webkit-scrollbar {
-    width: 20px;
+    width: 8px;
+    height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-    background-color: #d6dee1;
-    border-radius: 20px;
-    border: 7px solid transparent;
-    background-clip: content-box;
+    background: #d6dee1;
+    border-radius: 4px;
 }
 ::-webkit-scrollbar-track {
     background-color: transparent;
@@ -82,6 +81,12 @@ body {
 }
 .ant-modal-close {
     top: 15px !important;
+}
+.ant-modal-close-x {
+    line-height: 0px !important;
+}
+.ant-btn {
+    border-radius: 8px !important;
 }
 /* Đặt lại kiểu cho danh sách có thứ tự */
 ol {

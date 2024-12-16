@@ -1,21 +1,7 @@
 .content {
     max-height: calc(100vh - 66px);
     height: calc(100vh - 66px);
-    overflow: auto;
+    // overflow: auto;
     z-index: 0;
     background: inherit;
-}
-
-.content::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-.content::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-.content::-webkit-scrollbar-track {
-    background-color: hsla(0, 0%, 100%, 0.5);
 }

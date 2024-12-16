@@ -28,7 +28,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { Form, Input, message, Modal } from 'antd';
 import PaymentFormModal from '~/modules/PaymentForBuyCourse';
-import { getCoursesOrderSuccess } from '~/redux/stateglobal/courseSlice';
+import { editIsAds, getCoursesOrderSuccess } from '~/redux/stateglobal/courseSlice';
 import DOMPurify from 'dompurify';
 import sanitizeCourse from '~/modules/FunctionHandle/sanitizeCourse';
 interface CourseDetailPageProps {
@@ -53,6 +53,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const [course, setCourse] = useState<any>(null);
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const user = useSelector((state: any) => state.auth.login?.currentUser);
+    const isAds = useSelector((state: any) => state.course.courses?.isAds);
     const dispatch = useDispatch();
     const router = useRouter();
     let axiosJWT = createAxios(user, dispatch, loginSuccess);
@@ -186,6 +187,9 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     };
 
     const handleBuyCourseClick = (courseData: any) => {
+        if (isAds === true) {
+            dispatch(editIsAds());
+        }
         dispatch(getCoursesOrderSuccess(courseData));
         router.push(`/payment`);
     };
@@ -294,7 +298,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                         </span>
                     </div>
                 </div>
-                <ul className="lesson-list">
+                <ul className="lesson-list-course">
                     {lessons?.length > 0 ? (
                         lessons.map((lesson, index) => (
                             <li
