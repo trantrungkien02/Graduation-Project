@@ -38,6 +38,7 @@ const authController = {
       const newUser = new User({
         username: req.body.username,
         email: req.body.email,
+        phone: req.body.phone,
         password: hashed,
         role: req.body.role,
       });

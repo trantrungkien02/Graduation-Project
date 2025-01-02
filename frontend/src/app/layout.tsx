@@ -10,6 +10,7 @@ import '@fortawesome/fontawesome-svg-core/styles.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import 'react-quill/dist/quill.snow.css';
+import Providers from '~/modules/ProgressBarProvider';
 config.autoAddCss = true;
 dotenv.config();
 export const metadata: Metadata = {
@@ -33,7 +34,10 @@ export default function RootLayout({
         <StoreProvider>
             <GoogleOAuthProvider clientId={clientId || ''}>
                 <html lang="en" className={`${plus_jakarta_sans.variable}`}>
-                    <body>{children}</body>
+                    <body>
+                        {' '}
+                        <Providers>{children}</Providers>{' '}
+                    </body>
                 </html>
             </GoogleOAuthProvider>
         </StoreProvider>

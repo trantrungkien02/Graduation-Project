@@ -281,10 +281,10 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     return (
         <div className="flex pr-[80px] pl-[40px] pt-[30px]">
             <div className="w-2/3 px-3 course-des">
-                <h1 className="course-name">{course.name}</h1>
-                <p dangerouslySetInnerHTML={{ __html: sanitizedCourse.tittle }} />
+                <h1 className="course-name">{course?.name}</h1>
+                <p dangerouslySetInnerHTML={{ __html: sanitizedCourse?.tittle }} />
                 <h5 className="my-4">Bạn sẽ học được gì sau khóa học ?</h5>
-                <p dangerouslySetInnerHTML={{ __html: sanitizedCourse.result }} />
+                <p dangerouslySetInnerHTML={{ __html: sanitizedCourse?.result }} />
                 <div className="detail-course">Nội dung khóa học</div>
                 <div className="flex my-3">
                     <div className="flex items-center">
@@ -294,7 +294,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                     </div>
                     <div className="flex items-center ml-4">
                         <span>
-                            Thời lượng <span className="font-semibold ">{course.totalDuration || '00:00:00'}</span>
+                            Thời lượng <span className="font-semibold ">{course?.totalDuration || '00:00:00'}</span>
                         </span>
                     </div>
                 </div>

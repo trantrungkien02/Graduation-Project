@@ -5,6 +5,7 @@ import MainNavbar from '~/modules/mainnavbar';
 import Sidebar from '~/modules/Sidebar';
 import './layout.scss';
 import Footer from '~/modules/Footer';
+import Providers from '~/modules/ProgressBarProvider';
 
 export default function Layouts({ children }: { children: React.ReactNode }) {
     return (
@@ -14,7 +15,9 @@ export default function Layouts({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex">
                 <Sidebar />
-                <div className="h-full w-full content">{children}</div>
+                <div className="h-full w-full content">
+                    <Providers>{children}</Providers>
+                </div>
             </div>
             {/* <Footer /> */}
         </div>

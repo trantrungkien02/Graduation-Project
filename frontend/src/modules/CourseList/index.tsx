@@ -110,116 +110,128 @@ const CourseList = () => {
 
     return (
         <div className="w-[calc(100vw-120px)] pl-[40px] pr-[50px]">
-            <div className="mt-[18px] pb-3 relative h-[368px]">
-                {banners.length > 1 ? (
-                    <>
-                        <LeftOutlined className="left-btn" onClick={() => sliderRef.current?.slickPrev()} />
-                        <Slider ref={sliderRef} {...settings}>
-                            {banners.map((banner) => (
-                                <div className="!flex !items-center !justify-between bg-gradient-to-r from-[#626466] to-[#d6dcf1] rounded-lg p-8 h-[368px]">
-                                    <div className="text-white max-w-lg flex flex-col">
-                                        <h1 className="text-4xl font-bold mb-4 text-white">{banner?.title}</h1>
-                                        <p className="text-lg mb-6">{banner?.description}</p>
-                                        <button
-                                            className="px-6 py-3 hover:shadow-lg bg-[#f5f5f5] text-[#1261a6] font-medium rounded-lg transition duration-300"
-                                            onClick={() => handleCourseClick(banner?.courseSlug, banner?.courseId)}
-                                        >
-                                            Xem ngay
-                                        </button>
-                                    </div>
-                                    <div>
+            {user?.isLimit === '1' ? (
+                <div className="flex items-center justify-center h-[100vh] text-center">
+                    <p className="text-xl text-red-500 font-bold">
+                        Tài khoản của bạn đang bị giới hạn, vui lòng liên hệ quản trị viên để giải quyết.
+                    </p>
+                </div>
+            ) : (
+                <>
+                    <div className="mt-[18px] pb-3 relative h-[368px]">
+                        {banners.length > 1 ? (
+                            <>
+                                <LeftOutlined className="left-btn" onClick={() => sliderRef.current?.slickPrev()} />
+                                <Slider ref={sliderRef} {...settings}>
+                                    {banners.map((banner) => (
+                                        <div className="!flex !items-center !justify-between bg-gradient-to-r from-[#626466] to-[#d6dcf1] rounded-lg p-8 h-[368px]">
+                                            <div className="text-white max-w-lg flex flex-col">
+                                                <h1 className="text-4xl font-bold mb-4 text-white">{banner?.title}</h1>
+                                                <p className="text-lg mb-6">{banner?.description}</p>
+                                                <button
+                                                    className="px-6 py-3 hover:shadow-lg bg-[#f5f5f5] text-[#1261a6] font-medium rounded-lg transition duration-300"
+                                                    onClick={() =>
+                                                        handleCourseClick(banner?.courseSlug, banner?.courseId)
+                                                    }
+                                                >
+                                                    Xem ngay
+                                                </button>
+                                            </div>
+                                            <div>
+                                                <img
+                                                    src={banner?.url}
+                                                    alt="Banner"
+                                                    width={500}
+                                                    height={300}
+                                                    className="rounded-[16px] object-contain max-h-[300px]"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Slider>
+                                <RightOutlined className="right-btn" onClick={() => sliderRef.current?.slickNext()} />
+                            </>
+                        ) : (
+                            <div className="!flex !items-center !justify-between bg-gradient-to-r from-[#626466] to-[#d6dcf1] rounded-lg p-8 h-[368px]">
+                                <div className="text-white max-w-lg flex flex-col">
+                                    <h1 className="text-4xl font-bold mb-4 text-white">{banners[0]?.title}</h1>
+                                    <p className="text-lg mb-6">{banners[0]?.description}</p>
+                                    <button
+                                        className="px-6 py-3 hover:shadow-lg bg-[#f5f5f5] text-[#1261a6] font-medium rounded-lg transition duration-300"
+                                        onClick={() => handleCourseClick(banners[0]?.courseSlug, banners[0]?.courseId)}
+                                    >
+                                        Xem ngay
+                                    </button>
+                                </div>
+                                <div>
+                                    <img
+                                        src={banners[0]?.url}
+                                        alt="Banner"
+                                        width={500}
+                                        height={300}
+                                        className="rounded-[16px] object-contain max-h-[300px]"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="">
+                        <div className="course-title">Danh sách khóa học</div>
+                        <div className="grid grid-cols-5 gap-6 w-full">
+                            {courseList?.map((course: any) => (
+                                <div
+                                    key={course._id}
+                                    className="course-item"
+                                    onClick={() => handleCourseClick(course.slug, course._id)}
+                                >
+                                    <Link
+                                        href=""
+                                        className="relative block w-full pt-[56.25%] rounded-t-[16px] object-cover overflow-hidden"
+                                    >
                                         <img
-                                            src={banner?.url}
-                                            alt="Banner"
-                                            width={500}
-                                            height={300}
-                                            className="rounded-[16px] object-contain max-h-[300px]"
+                                            width={200}
+                                            src={course.image}
+                                            alt={course.name}
+                                            className="absolute top-0 left-0 w-full h-full object-contain"
                                         />
+                                    </Link>
+                                    <div className="flex-1 flex flex-col gap-3 p-4 px-5">
+                                        <h3 className="text-[18px] font-semibold min-h-[54px]">{course.name}</h3>
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <span className="text-[16px] font-semibold text-[#f05123]">
+                                                {course.price != 'Miễn phí' ? `${course.price} đ` : 'Miễn phí'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between mt-auto">
+                                            <div className="flex items-center gap-1.5 text-gray-600 text-[14px]">
+                                                <FontAwesomeIcon icon={faUserGroup} />
+                                                <span>{course.registrations}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 text-gray-600 text-[14px]">
+                                                <FontAwesomeIcon icon={faCirclePlay} />
+                                                <span>{lessonCounts[course._id] || 0}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 text-gray-600 text-[14px]">
+                                                <FontAwesomeIcon icon={faStar} />
+                                                <span>5</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
-                        </Slider>
-                        <RightOutlined className="right-btn" onClick={() => sliderRef.current?.slickNext()} />
-                    </>
-                ) : (
-                    <div className="!flex !items-center !justify-between bg-gradient-to-r from-[#626466] to-[#d6dcf1] rounded-lg p-8 h-[368px]">
-                        <div className="text-white max-w-lg flex flex-col">
-                            <h1 className="text-4xl font-bold mb-4 text-white">{banners[0]?.title}</h1>
-                            <p className="text-lg mb-6">{banners[0]?.description}</p>
-                            <button
-                                className="px-6 py-3 hover:shadow-lg bg-[#f5f5f5] text-[#1261a6] font-medium rounded-lg transition duration-300"
-                                onClick={() => handleCourseClick(banners[0]?.courseSlug, banners[0]?.courseId)}
-                            >
-                                Xem ngay
-                            </button>
-                        </div>
-                        <div>
-                            <img
-                                src={banners[0]?.url}
-                                alt="Banner"
-                                width={500}
-                                height={300}
-                                className="rounded-[16px] object-contain max-h-[300px]"
-                            />
                         </div>
                     </div>
-                )}
-            </div>
-
-            <div className="">
-                <div className="course-title">Danh sách khóa học</div>
-                <div className="grid grid-cols-5 gap-6 w-full">
-                    {courseList?.map((course: any) => (
-                        <div
-                            key={course._id}
-                            className="course-item"
-                            onClick={() => handleCourseClick(course.slug, course._id)}
-                        >
-                            <Link
-                                href=""
-                                className="relative block w-full pt-[56.25%] rounded-t-[16px] object-cover overflow-hidden"
-                            >
-                                <img
-                                    width={200}
-                                    src={course.image}
-                                    alt={course.name}
-                                    className="absolute top-0 left-0 w-full h-full object-contain"
-                                />
-                            </Link>
-                            <div className="flex-1 flex flex-col gap-3 p-4 px-5">
-                                <h3 className="text-[18px] font-semibold min-h-[54px]">{course.name}</h3>
-                                <div className="flex items-center gap-2 mb-4">
-                                    <span className="text-[16px] font-semibold text-[#f05123]">
-                                        {course.price != 'Miễn phí' ? `${course.price} đ` : 'Miễn phí'}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between mt-auto">
-                                    <div className="flex items-center gap-1.5 text-gray-600 text-[14px]">
-                                        <FontAwesomeIcon icon={faUserGroup} />
-                                        <span>{course.registrations}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-gray-600 text-[14px]">
-                                        <FontAwesomeIcon icon={faCirclePlay} />
-                                        <span>{lessonCounts[course._id] || 0}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-gray-600 text-[14px]">
-                                        <FontAwesomeIcon icon={faStar} />
-                                        <span>5</span>
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="">
+                        <div className="course-title">Danh sách giảng viên</div>
+                        <div className="grid grid-cols-5 gap-6 w-full">
+                            {userList
+                                ?.filter((user: any) => user.role === '2')
+                                .map((user: any, index: any) => <UserCard key={index} user={user} />)}
                         </div>
-                    ))}
-                </div>
-            </div>
-            <div className="">
-                <div className="course-title">Danh sách giảng viên</div>
-                <div className="grid grid-cols-5 gap-6 w-full">
-                    {userList
-                        ?.filter((user: any) => user.role === '2')
-                        .map((user: any, index: any) => <UserCard key={index} user={user} />)}
-                </div>
-            </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };

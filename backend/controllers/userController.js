@@ -151,6 +151,7 @@ const userController = {
           return res.status(400).json('Username already in use');
         }
         user.username = req.body.username;
+        user.isLimit = req.body.isLimit;
         user.registeredCourses = req.body.registeredCourses;
       }
 

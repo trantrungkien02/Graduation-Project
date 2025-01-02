@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createAxios } from '~/app/createInstance';
 import './index.scss';
 import { loginSuccess } from '~/redux/stateglobal/authSlice';
-import { deleteUser, getAllUsers, searchUsers } from '~/redux/stateglobal/apiRequest';
+import { deleteUser, getAllUsers, searchUsers, updateUser } from '~/redux/stateglobal/apiRequest';
 
 const UserList = () => {
     const user = useSelector((state: any) => state.auth.login?.currentUser);
@@ -46,17 +46,21 @@ const UserList = () => {
         return () => clearTimeout(timeout);
     }, [searchText, searchField]);
 
-    const handleDelete = (id: any) => {
+    const handleDelete = (currentUser: any) => {
         Modal.confirm({
-            title: 'Xác nhận xóa người dùng',
-            content: 'Bạn có chắc chắn muốn xóa người dùng này không?',
+            title: 'Xác nhận thực hiện hành động!',
+            content: 'Bạn có chắc chắn muốn thực hiện hoạt động này không?',
             okText: 'Có',
             cancelText: 'Không',
             style: {
-                top: '40%',
+                top: '20%',
             },
             onOk: async () => {
-                await deleteUser(user?.accessToken, dispatch, id, axiosJWT);
+                const updatedUser = {
+                    ...currentUser,
+                    isLimit: currentUser.isLimit === '1' ? '0' : '1',
+                };
+                await axiosJWT.put('http://localhost:8000/v1/user/update-user', updatedUser);
                 if (user?.accessToken) {
                     getAllUsers(user?.accessToken, dispatch, axiosJWT);
                 }
@@ -74,6 +78,7 @@ const UserList = () => {
             dataIndex: 'key',
             render: (text: any, record: any, index: number) =>
                 (pagination.current - 1) * pagination.pageSize + index + 1,
+            width: '5%',
         },
         {
             title: 'Tên',
@@ -84,25 +89,43 @@ const UserList = () => {
             dataIndex: 'email',
         },
         {
+            title: 'Số điện thoại',
+            dataIndex: 'phone',
+        },
+        {
             title: 'Vai trò',
             dataIndex: 'role',
             render: (role: string) => (role === '1' ? 'Học viên' : role === '2' ? 'Giảng viên' : 'Admin'),
         },
         {
-            title: 'Hành động',
+            title: 'Trạng thái',
             render: (text: any, record: any) => (
                 <>
-                    <Button
-                        onClick={() => handleDelete(record._id)}
-                        style={{
-                            backgroundColor: '#b80000',
-                            borderColor: '#b80000',
-                            borderRadius: '5px',
-                            color: 'white',
-                        }}
-                    >
-                        Delete
-                    </Button>
+                    <div className="flex items-center">
+                        <Button
+                            style={{
+                                backgroundColor: record.isLimit === '0' ? '#008000' : '#FFA500', // Xanh lá nếu '0', vàng nếu khác '0'
+                                marginRight: '10px',
+                                color: 'white',
+                                marginTop: '8px',
+                            }}
+                        >
+                            {record.isLimit === '0' ? 'Hoạt động' : 'Giới hạn'}
+                        </Button>
+
+                        <Button
+                            onClick={() => handleDelete(record)}
+                            style={{
+                                backgroundColor: record.isLimit === '0' ? '#b80000' : '#008000', // Đỏ nếu '0', xanh lá nếu khác '0'
+                                borderColor: record.isLimit === '0' ? '#b80000' : '#008000',
+                                borderRadius: '5px',
+                                color: 'white',
+                                marginTop: '8px',
+                            }}
+                        >
+                            {record.isLimit === '0' ? 'Tắt' : 'Bật'} {/* Hiển thị Tắt nếu '0', Bật nếu khác '0' */}
+                        </Button>
+                    </div>
                 </>
             ),
         },

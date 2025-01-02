@@ -138,6 +138,26 @@ function RegisterForm() {
             </div>
             <div className="form-item-custom">
                 <div className="title">
+                    Phone
+                    <b className="text-red-600">*</b>
+                </div>
+                <Form.Item
+                    name="phone"
+                    validateTrigger={['onBlur', 'onChange']}
+                    rules={[
+                        { required: true, message: 'Số điện thoại không được để trống' },
+                        {
+                            pattern: /((09|03|07|08|05)+([0-9]{8})\b)/g,
+                            message: 'Số điện thoại không hợp lệ',
+                        },
+                    ]}
+                >
+                    <Input name="phone" id="phone" className="input-formik-global" placeholder="Số điện thoại" />
+                </Form.Item>
+            </div>
+
+            <div className="form-item-custom">
+                <div className="title">
                     Vai trò của bạn là:
                     <b className="text-red-600">*</b>
                 </div>

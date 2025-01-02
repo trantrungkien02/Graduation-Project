@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema(
       maxlength: 50,
       unique: true,
     },
+    phone: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     password: {
       type: String,
       required: true,
@@ -47,6 +52,10 @@ const userSchema = new mongoose.Schema(
       github: { type: String, required: false, default: '' },
       facebook: { type: String, required: false, default: '' },
       tiktok: { type: String, required: false, default: '' },
+    },
+    isLimit: {
+      type: String,
+      default: '0',
     },
   },
   { timestamps: true },

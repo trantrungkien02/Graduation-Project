@@ -104,7 +104,7 @@ const LessonList = () => {
             console.log(lessonData);
             setEditingLesson(lessonData);
             setIsEditPractice(true);
-            setPracticeName(lessonData.name || ''); // Gán tên bài thực hành (nếu có)
+            setPracticeName(lessonData.name || ''); // Gán tên bài kiểm tra trắc nghiệm (nếu có)
             setQuestions(lessonData.quesList || []); // Gán danh sách câu hỏi
             setCurrentIndex(0); // Đặt về câu hỏi đầu tiên
             setCurrentQuestion(lessonData.quesList?.[0] || {}); // Gán dữ liệu cho câu hỏi đầu tiên
@@ -141,7 +141,7 @@ const LessonList = () => {
                 };
                 console.log(lessonPractice);
                 await updateLesson(user?.accessToken, dispatch, lessonPractice, axiosJWT); // Update lesson API
-                message.success('Thông tin bài thực hành đã được cập nhật thành công!');
+                message.success('Thông tin bài kiểm tra trắc nghiệm đã được cập nhật thành công!');
                 setIsModalVisiblePt(false);
                 const updatedLessons = await getLessonBycourseId(
                     user?.accessToken,
@@ -235,7 +235,7 @@ const LessonList = () => {
             };
             console.log(lessonPractice);
             await registerPractice(lessonPractice, dispatch);
-            message.success('Thêm bài thực hành thành công!');
+            message.success('Thêm bài kiểm tra trắc nghiệm thành công!');
             setQuestions([]);
             setCurrentIndex(0);
             form.resetFields();
@@ -243,7 +243,7 @@ const LessonList = () => {
             const updatedLessons = await getLessonBycourseId(user?.accessToken, selectedCourseId, dispatch, axiosJWT);
             setCurrentLessonList(updatedLessons);
         } catch (err) {
-            message.error('Có lỗi xảy ra khi thêm bài thực hành!');
+            message.error('Có lỗi xảy ra khi thêm bài kiểm tra trắc nghiệm!');
         }
     };
     const handlePrevious = () => {
@@ -374,7 +374,7 @@ const LessonList = () => {
                     onClick={() => setIsModalVisiblePt(true)}
                     style={{ marginBottom: '20px', marginLeft: '20px' }}
                 >
-                    Thêm bài thực hành
+                    Thêm bài kiểm tra trắc nghiệm
                 </Button>
             )}
 
@@ -438,7 +438,7 @@ const LessonList = () => {
                 </Form>
             </Modal>
             <Modal
-                title="Thêm bài thực hành"
+                title="Thêm bài kiểm tra trắc nghiệm"
                 visible={isModalVisiblePt}
                 onCancel={() => {
                     form.resetFields();
@@ -479,7 +479,7 @@ const LessonList = () => {
                 centered
             >
                 <Form layout="vertical">
-                    <Form.Item label="Tên bài thực hành">
+                    <Form.Item label="Tên bài kiểm tra trắc nghiệm">
                         <Input value={practiceName} onChange={(e) => setPracticeName(e.target.value)} />
                     </Form.Item>
                     <div className="font-bold mb-2">{`Câu hỏi số ${currentIndex + 1}`}</div>

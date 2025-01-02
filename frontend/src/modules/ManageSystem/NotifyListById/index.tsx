@@ -145,7 +145,7 @@ const NotifyList = () => {
                         }}
                         onClick={() => handleEdit(record._id)}
                     >
-                        Edit
+                        Sửa
                     </Button>
                     <Button
                         onClick={() => handleDelete(record._id)}
@@ -157,7 +157,7 @@ const NotifyList = () => {
                             marginLeft: '20px',
                         }}
                     >
-                        Delete
+                        Xóa
                     </Button>
                 </>
             ),
