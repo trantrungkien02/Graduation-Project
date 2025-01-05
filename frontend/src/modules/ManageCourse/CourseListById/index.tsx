@@ -166,21 +166,19 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             message.error('Khóa học của bạn chưa đăng bài giảng nào.');
             return;
         }
-        if (courseList) {
+        if (Array.isArray(courseList)) {
             const course = courseList.find((c: any) => c._id === courseId);
             if (course) {
-                // Tạo bản sao của registeredUsers để không thay đổi trực tiếp đối tượng gốc
-                const updatedRegisteredUsers = course.registeredUsers.map((user: any) => {
-                    return {
-                        ...user, // Giữ nguyên các thuộc tính của user
-                        courseLength: res.data.length, // Thêm thuộc tính courseLength
-                    };
-                });
-
-                // Cập nhật lại studentList với mảng đã được chỉnh sửa
+                const updatedRegisteredUsers = course.registeredUsers.map((user: any) => ({
+                    ...user,
+                    courseLength: res.data.length,
+                }));
                 setStudentList(updatedRegisteredUsers);
             }
+        } else {
+            console.error('courseList is not an array:', courseList);
         }
+
         setIsModalVisibleSl(true);
     };
 
@@ -564,7 +562,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             >
                 <p className="font-bold text-[16px] mb-[10px]">Tổng số học viên: {studentList.length} Học viên</p>
                 <Table
-                    dataSource={studentList}
+                    dataSource={[...studentList]}
                     columns={[
                         {
                             title: 'Tên học viên',

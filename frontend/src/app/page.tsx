@@ -14,7 +14,7 @@ export default function Home() {
             </div>
             <div className="flex">
                 <Sidebar />
-                <div className=" content overflow-auto">
+                <div className=" content-home overflow-auto">
                     <CourseList />
                     <Footer />
                 </div>

@@ -6,7 +6,7 @@ import { images } from '~/assets/images';
 
 const TermsOfUse = () => {
     return (
-        <div className="flex flex-col items-center h-full">
+        <div className="flex flex-col items-center ">
             <div
                 className="flex flex-col justify-center items-start w-[60%] xxl:w-[55%] mx-auto text-gray-900 mt-[30px] p-8 rounded "
                 style={{ background: 'rgba(255, 255, 255, 0.4)' }}

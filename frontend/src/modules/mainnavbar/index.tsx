@@ -89,7 +89,7 @@ function MainNavbar() {
 
                 // Fetch lessons for each course and count
                 const lessonsData = await Promise.all(
-                    courseList.map(async (course: any) => {
+                    courseList?.map(async (course: any) => {
                         const lessons = await getLessonBycourseId(user.accessToken, course._id, dispatch, axiosJWT);
                         return {
                             courseId: course._id,
@@ -609,7 +609,7 @@ function MainNavbar() {
                         <div className="ant-dropdown-trigger text-start w-full cursor-pointer">Language</div>
                     </button>
                 </Dropdown>
-                <ChangePassword />
+                {/* <ChangePassword /> */}
                 <MyQrCode />
                 <button
                     type="button"

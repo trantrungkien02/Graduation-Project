@@ -707,7 +707,7 @@ function ManageSystem() {
                     <BannerList />
                 </Tabs.TabPane>
                 <Tabs.TabPane tab={<div>Thống kê</div>} key="5">
-                    <Charts data={dataFake} />
+                    <Charts data={courseList} />
                 </Tabs.TabPane>
             </Tabs>
         </div>

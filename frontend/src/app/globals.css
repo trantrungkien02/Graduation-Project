@@ -85,6 +85,9 @@ body {
 .ant-modal-close-x {
     line-height: 0px !important;
 }
+.ant-modal-header {
+    border-radius: 16px !important;
+}
 .ant-btn {
     border-radius: 8px !important;
 }

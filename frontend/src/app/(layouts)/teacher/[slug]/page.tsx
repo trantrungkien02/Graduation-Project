@@ -8,7 +8,8 @@ import { createAxios } from '~/app/createInstance';
 import { getAllCoursesByIdUser } from '~/redux/stateglobal/apiRequest';
 import { loginSuccess } from '~/redux/stateglobal/authSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCirclePlay, faClock, faUserGroup } from '@fortawesome/free-solid-svg-icons';
+import { faCirclePlay, faClock, faStar, faUserGroup } from '@fortawesome/free-solid-svg-icons';
+import { images } from '~/assets/images';
 
 interface UserProps {
     params: { slug: string };
@@ -89,7 +90,11 @@ export default function Myteacher({ params }: UserProps) {
                     {/* Avatar */}
                     <div className="flex justify-center">
                         <img
-                            src={teacher?.info.avatar || '/default-avatar.png'} // Đường dẫn ảnh hoặc ảnh mặc định
+                            src={
+                                teacher?.info?.avatar
+                                    ? teacher.info.avatar
+                                    : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNL_ZnOTpXSvhf1UaK7beHey2BX42U6solRA&s'
+                            }
                             alt={teacher?.username || 'Avatar giáo viên'} // Alt text
                             className="w-[200px] h-[200px] rounded-full border-4 border-white -mt-[7rem] object-cover"
                         />
@@ -139,8 +144,8 @@ export default function Myteacher({ params }: UserProps) {
                                             <FontAwesomeIcon icon={faCirclePlay} />
                                         </div>
                                         <div className="flex items-center gap-1.5 text-gray-600 text-[14px]">
-                                            <FontAwesomeIcon icon={faClock} />
-                                            <span>3:45</span>
+                                            <span>5</span>
+                                            <FontAwesomeIcon icon={faStar} />
                                         </div>
                                     </div>
                                 </div>

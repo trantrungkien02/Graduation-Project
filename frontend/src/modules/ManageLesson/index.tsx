@@ -293,9 +293,10 @@ const LessonList = () => {
             width: '25%',
         },
         {
-            title: 'Thảo luận',
-            dataIndex: 'discuss',
-            key: 'discuss',
+            title: 'Phân loại',
+            dataIndex: 'type',
+            key: 'type',
+            render: (type: string) => (type === 'video' ? 'Bài Giảng' : 'Bài Kiểm Tra'),
             width: '15%',
         },
         {
@@ -313,7 +314,7 @@ const LessonList = () => {
                         }}
                         onClick={() => handleEdit(record._id)}
                     >
-                        Edit
+                        Sửa
                     </Button>
                     <Button
                         onClick={() => handleDelete(record._id)}
@@ -325,7 +326,7 @@ const LessonList = () => {
                             marginLeft: '20px',
                         }}
                     >
-                        Delete
+                        Xóa
                     </Button>
                 </>
             ),
@@ -339,7 +340,7 @@ const LessonList = () => {
                 <Select
                     placeholder="Chọn khóa học"
                     onChange={(courseId) => handleCourseSelect(courseId)}
-                    style={{ width: '90%', borderRadius: '20px' }}
+                    style={{ width: '100%', borderRadius: '20px' }}
                 >
                     {courseList.length > 0 ? (
                         courseList.map((course: any) => (

@@ -190,10 +190,10 @@ function ManageCourse() {
                 transition={Bounce}
                 style={{ zIndex: 9999 }} // Tăng z-index lên
             />
-            <h2 className="manage-title">Quản lý khóa Học</h2>
+            <h2 className="mt-4 mx-auto mb-7 ml-5 text-[#242424] text-[1.4rem] font-black">Quản lý khóa Học</h2>
             <Tabs defaultActiveKey="1" className="pl-5 target-nav" onChange={handleTabChange}>
                 <Tabs.TabPane tab={<div>Thêm khóa học</div>} key="1">
-                    <div className="h-full overflow-auto">
+                    <div className=" overflow-auto">
                         <div onClick={showModal} className="text-red-600 ml-[300px] mb-[30px] text-[16px]">
                             Lưu ý khi thêm bài giảng
                         </div>

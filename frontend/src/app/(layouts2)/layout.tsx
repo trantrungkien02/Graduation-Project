@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import MainNavbar from '~/modules/mainnavbar';
 import Sidebar from '~/modules/Sidebar';
 import './layout.scss';
+import Footer from '~/modules/Footer';
 
 export default function Layouts({ children }: { children: React.ReactNode }) {
     return (

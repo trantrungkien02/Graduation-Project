@@ -158,7 +158,7 @@ const Quiz = ({ quesList, onQuizComplete }: QuizProps) => {
                     </div>
                 </div>
             )}
-            <div className="footer">
+            <div className="footer-ques">
                 <button className="nav-button" disabled={currentQuestion === 0} onClick={handlePrev}>
                     Trước
                 </button>

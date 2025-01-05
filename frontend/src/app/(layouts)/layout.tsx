@@ -19,7 +19,7 @@ export default function Layouts({ children }: { children: React.ReactNode }) {
                     <Providers>{children}</Providers>
                 </div>
             </div>
-            {/* <Footer /> */}
+            <Footer />
         </div>
     );
 }

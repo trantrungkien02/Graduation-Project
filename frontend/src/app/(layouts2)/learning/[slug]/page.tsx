@@ -607,6 +607,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const handleCancelEdit = () => {
         setIsEditing(null);
     };
+
     return (
         <div className="h-full">
             <div className="navbar-learn">
@@ -828,6 +829,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                             footer={null} // Hide the default footer (Ok and Cancel buttons)
                             width={825}
                             style={{ top: 0, position: 'absolute', right: 0, bottom: 0 }} // Set height if needed
+                            className="modal-cm"
                         >
                             <div className="comment-modal">
                                 <div className="container-fluid line-numbers">
@@ -947,6 +949,9 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                                                 <FontAwesomeIcon
                                                                     icon={faEllipsis}
                                                                     className="ml-5 text-[14px] text-[#515fad] cursor-pointer"
+                                                                    onClick={() => {
+                                                                        console.log('Clicked!');
+                                                                    }}
                                                                 />
                                                             </Dropdown>
                                                         </div>
