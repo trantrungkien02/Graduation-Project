@@ -167,7 +167,13 @@ const LessonList = () => {
             return;
         }
         try {
-            const lessonData = { ...values, courseId: selectedCourseId, userId: user?._id, userName: user?.username };
+            const lessonData = {
+                ...values,
+                courseId: selectedCourseId,
+                userId: user?._id,
+                userName: user?.username,
+                discuss: 'hh',
+            };
             const resultLesson = await registerLesson(lessonData, dispatch);
             if (resultLesson === 'Lesson name and courseId combination already exists') {
                 message.success('Bài giảng đã tồn tại!');
@@ -407,13 +413,13 @@ const LessonList = () => {
                     >
                         <Input />
                     </Form.Item>
-                    <Form.Item
+                    {/* <Form.Item
                         label="Thảo luận"
                         name="discuss"
                         rules={[{ required: true, message: 'Vui lòng nhập nội dung thảo luận!' }]}
                     >
                         <Input />
-                    </Form.Item>
+                    </Form.Item> */}
                 </Form>
             </Modal>
 
@@ -433,9 +439,9 @@ const LessonList = () => {
                     <Form.Item label="Video ID" name="videoId">
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Thảo luận" name="discuss">
+                    {/* <Form.Item label="Thảo luận" name="discuss">
                         <Input />
-                    </Form.Item>
+                    </Form.Item> */}
                 </Form>
             </Modal>
             <Modal

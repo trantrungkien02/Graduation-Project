@@ -97,6 +97,7 @@ const NotifyList = () => {
     const handleSaveEdit = async () => {
         try {
             const values = form.getFieldsValue(); // Lấy giá trị từ form
+            console.log(values);
             await updateNotify(user?.accessToken, dispatch, { ...editingNotify, ...values }, axiosJWT);
             message.success('Thông báo đã được cập nhật thành công!');
             setIsModalVisible(false); // Ẩn modal

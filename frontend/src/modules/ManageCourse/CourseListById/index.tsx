@@ -40,7 +40,8 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
     const [isModalVisibleSl, setIsModalVisibleSl] = useState(false);
     const [isModalVisibleCn, setIsModalVisibleCn] = useState(false);
     const [studentList, setStudentList] = useState<any[]>([]);
-    const [form] = Form.useForm(); // Khởi tạo form từ Ant Design
+    const [form] = Form.useForm();
+    const [form1] = Form.useForm();
     const [currentCourseList, setCurrentCourseList] = useState(courseList);
     const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -96,14 +97,19 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
         return () => clearTimeout(timeout);
     }, [searchText, searchField]);
 
-    const handleDelete = (id: any) => {
+    const handleDelete = (course: any) => {
+        if (course.registrations > 0) {
+            message.success('Không thể xóa khóa học đã có học viên');
+            return;
+        }
+
         Modal.confirm({
             title: 'Xác nhận xóa khóa học',
             content: 'Bạn có chắc chắn muốn xóa khóa học này không?',
             okText: 'Có',
             cancelText: 'Không',
             onOk: async () => {
-                await deleteCourse(user?.accessToken, dispatch, id, axiosJWT);
+                await deleteCourse(user?.accessToken, dispatch, course._id, axiosJWT);
                 if (user?.accessToken) {
                     const updatedCourse = await getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
                     setCurrentCourseList(updatedCourse);
@@ -124,6 +130,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             result: courseData.result,
             des: courseData.des,
         }); // Đặt giá trị form với dữ liệu từ API
+        console.log(form);
         setIsModalVisible(true); // Hiển thị modal
     };
 
@@ -191,7 +198,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
         const res = await getCourseById(user?.accessToken, courseId, dispatch, axiosJWT);
         console.log(res);
 
-        form.setFieldsValue({ courseId: res?.slug }); // Gán trước courseId (ẩn trong form)
+        form1.setFieldsValue({ courseId: res?.slug }); // Gán trước courseId (ẩn trong form)
     };
     const handleCreateAds = async (courseData: any) => {
         const response = await axiosJWT.get('http://localhost:8000/v1/banner/getallbanner');
@@ -208,7 +215,8 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
     };
     const handleCancelCn = () => {
         setIsModalVisibleCn(false);
-        form.resetFields(); // Xóa dữ liệu trong form
+        getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
+        form1.resetFields(); // Xóa dữ liệu trong form
     };
 
     const handleSubmitCn = async (values: any) => {
@@ -222,7 +230,8 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             if (response.data) {
                 message.success('Thông báo đã được gửi thành công!');
                 setIsModalVisibleCn(false);
-                form.resetFields(); // Reset form sau khi gửi thành công
+                form1.resetFields(); // Reset form sau khi gửi thành công
+                getAllCoursesByIdUser(user?.accessToken, user._id, dispatch, axiosJWT);
             } else {
                 message.error('Gửi thông báo thất bại!');
             }
@@ -283,7 +292,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
                             Sửa
                         </Button>
                         <Button
-                            onClick={() => handleDelete(record._id)}
+                            onClick={() => handleDelete(record)}
                             style={{
                                 backgroundColor: '#b80000',
                                 borderColor: '#b80000',
@@ -611,7 +620,7 @@ const CourseListById = ({ uploadImage }: { uploadImage: (file: File) => Promise<
             </Modal>
 
             <Modal title="Tạo thông báo" visible={isModalVisibleCn} onCancel={handleCancelCn} footer={null}>
-                <Form form={form} onFinish={handleSubmitCn} layout="vertical">
+                <Form form={form1} onFinish={handleSubmitCn} layout="vertical">
                     {/* Ẩn courseId */}
                     <Form.Item name="courseId" hidden>
                         <Input />

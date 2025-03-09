@@ -129,7 +129,9 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
     const [editedText, setEditedText] = useState('');
     const [currentNotes, setCurrentNotes] = useState(notes || []);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isModalVisibleQues, setIsModalVisibleQues] = useState(false);
     const [isEditComment, setIsEditComment] = useState(false);
+    const [form] = Form.useForm();
     const dispatch = useDispatch();
     const router = useRouter();
     let axiosJWT = createAxios(user, dispatch, loginSuccess);
@@ -159,6 +161,30 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
             setActiveReplyId(replyId); // Nếu nhấn vào phản hồi khác, hiển thị ReactQuill ở đó
         }
     };
+    useEffect(() => {
+        const checkUserRegister = async () => {
+            const courseData = await fetchCourseBySlug(params.slug);
+
+            if (!courseData || !user) {
+                message.error('Thông tin khóa học hoặc người dùng không hợp lệ');
+                router.push('/');
+                return;
+            }
+            if (courseData.userId === user._id) {
+                return; // Giảng viên được phép truy cập, không cần kiểm tra đăng ký
+            }
+            // Kiểm tra user._id trong danh sách registeredUsers
+            const isRegistered = courseData.registeredUsers.some(
+                (registeredUser: any) => registeredUser.userId === user._id,
+            );
+
+            if (!isRegistered) {
+                message.warning('Bạn chưa đăng ký khóa học');
+                router.push('/');
+            }
+        };
+        checkUserRegister();
+    }, []);
     const handleQuizComplete = (isPassed: boolean) => {
         setIsQuizPassed(isPassed);
     };
@@ -182,7 +208,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
             try {
                 const courseData = await fetchCourseBySlug(params.slug);
                 setCourse(courseData);
-
+                console.log(courseData.userId, user._id);
                 const lessonsData = await getLessonBycourseId(user?.accessToken, courseData._id, dispatch, axiosJWT);
                 setLessons(lessonsData);
 
@@ -321,8 +347,9 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
         const lessonsCompleted = currentCourse ? currentCourse.lessonsCompleted : 0;
         console.log(index, lessonsCompleted);
 
+        const isInstructor = user._id === course.userId;
         // Kiểm tra nếu bài học bị khóa
-        if (index > lessonsCompleted) {
+        if (!isInstructor && index > lessonsCompleted) {
             message.error('Bạn cần hoàn thành bài học trước để tiếp tục!!');
         } else {
             setSelectedLesson(lesson); // Cập nhật bài học được chọn khi click
@@ -608,6 +635,39 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
         setIsEditing(null);
     };
 
+    const showModalQues = () => {
+        setIsModalVisibleQues(true);
+    };
+
+    // Đóng modal
+    const handleCancelQues = () => {
+        setIsModalVisibleQues(false);
+        form.resetFields();
+    };
+
+    // Xử lý lưu thông báo
+    const handleSaveQues = async () => {
+        try {
+            const { question } = form.getFieldsValue(); // Lấy giá trị thắc mắc từ form
+            const notifyData = {
+                senderId: user._id, // ID người dùng gửi thắc mắc
+                senderName: user.username, // Tên người dùng gửi thắc mắc
+                receiverId: course.userId, // ID giảng viên nhận thắc mắc
+                tittle: `Thắc mắc từ ${course.name}`,
+                type: 'question',
+                des: question, // Nội dung thắc mắc
+                courseId: course.slug, // ID khóa học
+            };
+            await createNotify(notifyData, axiosJWT); // Gửi thông báo qua API
+            message.success('Thắc mắc đã được gửi thành công!');
+            setIsModalVisibleQues(false);
+            form.resetFields();
+        } catch (error) {
+            console.error(error);
+            message.error('Không thể gửi thắc mắc, vui lòng thử lại sau!');
+        }
+    };
+
     return (
         <div className="h-full">
             <div className="navbar-learn">
@@ -752,9 +812,32 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                             <p className="text-center">Không có ghi chú nào cho khóa học này.</p>
                         )}
                     </Modal>
-                    <div>
-                        <FontAwesomeIcon icon={faCircleQuestion} className="ml-5 text-[14px] text-[#fff]" /> Hướng dẫn
+                    <div onClick={showModalQues}>
+                        <FontAwesomeIcon icon={faCircleQuestion} className="ml-5 text-[14px] text-[#fff]" /> Thắc mắc
                     </div>
+                    <Modal
+                        title="Gửi thắc mắc"
+                        visible={isModalVisibleQues}
+                        onCancel={handleCancelQues}
+                        footer={[
+                            <Button key="cancel" onClick={handleCancelQues}>
+                                Hủy
+                            </Button>,
+                            <Button key="save" type="primary" onClick={handleSaveQues}>
+                                Lưu
+                            </Button>,
+                        ]}
+                    >
+                        <Form form={form} layout="vertical">
+                            <Form.Item
+                                label="Nội dung thắc mắc"
+                                name="question"
+                                rules={[{ required: true, message: 'Vui lòng nhập nội dung thắc mắc!' }]}
+                            >
+                                <Input.TextArea rows={4} placeholder="Nhập thắc mắc của bạn..." />
+                            </Form.Item>
+                        </Form>
+                    </Modal>
                 </div>
             </div>
             <div className="flex">
@@ -908,8 +991,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                                             <Dropdown
                                                                 overlay={
                                                                     <Menu>
-                                                                        {comment.userId === user._id ||
-                                                                        course.userId === user._id ? (
+                                                                        {comment.userId === user._id ? (
                                                                             <>
                                                                                 <Menu.Item
                                                                                     key="edit"
@@ -931,6 +1013,18 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                                                                     Xóa bình luận
                                                                                 </Menu.Item>
                                                                             </>
+                                                                        ) : course.userId === user._id ? (
+                                                                            <Menu.Item
+                                                                                key="delete"
+                                                                                onClick={() =>
+                                                                                    handleDeleteComment(
+                                                                                        comment._id,
+                                                                                        comment.lessonId,
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                Xóa bình luận
+                                                                            </Menu.Item>
                                                                         ) : null}
                                                                         <Menu.Item
                                                                             key="report"
@@ -1048,9 +1142,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                                                                         overlay={
                                                                                             <Menu>
                                                                                                 {reply.userId ===
-                                                                                                    user._id ||
-                                                                                                course.userId ===
-                                                                                                    user._id ? (
+                                                                                                user._id ? (
                                                                                                     <>
                                                                                                         <Menu.Item
                                                                                                             key="edit"
@@ -1078,7 +1170,22 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                                                                                             luận
                                                                                                         </Menu.Item>
                                                                                                     </>
+                                                                                                ) : course.userId ===
+                                                                                                  user._id ? (
+                                                                                                    <Menu.Item
+                                                                                                        key="delete"
+                                                                                                        onClick={() =>
+                                                                                                            handleDeleteReply(
+                                                                                                                comment._id,
+                                                                                                                comment.lessonId,
+                                                                                                                reply._id,
+                                                                                                            )
+                                                                                                        }
+                                                                                                    >
+                                                                                                        Xóa bình luận
+                                                                                                    </Menu.Item>
                                                                                                 ) : null}
+
                                                                                                 <Menu.Item
                                                                                                     key="report"
                                                                                                     onClick={() =>
@@ -1174,17 +1281,22 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                             const currentCourse = user?.registeredCourses.find((currentCourse: any) => {
                                 return currentCourse.courseId == course._id;
                             });
+
                             // Nếu không tìm thấy khóa học, mặc định lessonsCompleted là 0
                             const lessonsCompleted = currentCourse ? currentCourse.lessonsCompleted : 0;
 
+                            // Kiểm tra nếu người dùng là giảng viên
+                            const isInstructor = user._id === course.userId;
+
                             // Xác định bài học có bị khóa không
-                            const isLocked = index > lessonsCompleted;
-                            const isChecked = index < lessonsCompleted;
+                            const isLocked = !isInstructor && index > lessonsCompleted;
+                            const isChecked = !isInstructor && index < lessonsCompleted;
+
                             return (
                                 <li
                                     key={lesson._id}
                                     className={`lesson-item-learning ${lesson._id === selectedLesson._id ? 'active' : ''} ${isLocked ? 'locked' : ''}`}
-                                    onClick={() => handleLessonClick(lesson, index)}
+                                    onClick={() => !isLocked && handleLessonClick(lesson, index)}
                                     style={{ cursor: isLocked ? 'not-allowed' : 'pointer' }}
                                 >
                                     <div className="flex justify-between items-center">
@@ -1211,13 +1323,12 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                                                         className="mr-2 text-[14px] text-[#666]"
                                                     />
                                                 ) : null}
-
                                                 <span className="text-[14px]">{lesson.duration || '00:00'} </span>
                                             </div>
                                         </div>
                                         <div className="ml-4">
                                             {!isLocked ? (
-                                                isChecked ? (
+                                                isChecked || isInstructor ? (
                                                     <FontAwesomeIcon
                                                         icon={faCircleCheck}
                                                         className="mr-3 text-[18px] text-[#1261a6] "

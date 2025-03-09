@@ -94,46 +94,16 @@ function ManageCourse() {
             console.log(response);
 
             if (typeof response === 'object') {
-                toast.success('Khóa học của bạn sẽ được thêm khi được hệ thống xét duyệt!', {
-                    position: 'bottom-right',
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: 'success',
-                    transition: Bounce,
-                });
+                message.success('Khóa học của bạn sẽ được thêm khi được hệ thống xét duyệt!');
                 setTimeout(() => {
                     router.push('/');
                 }, 3000);
             } else if (typeof response === 'string') {
-                toast.error('Khóa học đã tồn tại!', {
-                    position: 'bottom-right',
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: 'light',
-                    transition: Bounce,
-                });
+                message.error('Khóa học đã tồn tại!');
             }
         } catch (error) {
             console.error('Error adding course:', error);
-            toast.error('Đã xảy ra lỗi khi thêm khóa học!', {
-                position: 'top-right',
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: 'light',
-                transition: Bounce,
-            });
+            message.error('Đã xảy ra lỗi khi thêm khóa học!');
         }
     };
 

@@ -112,6 +112,41 @@ router.get('/vnpay_return', function (req, res, next) {
   }
 });
 
+router.get('/getallorder', async (req, res) => {
+  try {
+    const orders = await CourseOrder.find().sort({ createdAt: -1 });
+    res.status(200).json(orders);
+  } catch (err) {
+    console.error('Error retrieving orders:', err);
+    res.status(500).json({ message: 'Error retrieving orders', error: err });
+  }
+});
+
+router.get('/searchorder', async (req, res) => {
+  try {
+    const { field, q } = req.query; // Lấy field và query từ query string
+
+    // Kiểm tra xem có tham số query không
+    if (!q) {
+      return res.status(400).json({ message: 'Query parameter is required' });
+    }
+
+    // Kiểm tra xem có field hợp lệ không (ví dụ: courseName, senderUser, receiveUser)
+    if (!['courseName', 'senderUser', 'receiveUser'].includes(field)) {
+      return res.status(400).json({ message: 'Invalid field parameter' });
+    }
+
+    // Tìm kiếm đơn hàng dựa vào trường field và từ khóa query
+    const orders = await CourseOrder.find({
+      [field]: { $regex: q, $options: 'i' }, // Tìm kiếm không phân biệt hoa thường
+    });
+
+    res.status(200).json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error searching orders', error: err });
+  }
+});
 router.post('/add-course-order', async (req, res) => {
   try {
     // Lấy dữ liệu từ request body

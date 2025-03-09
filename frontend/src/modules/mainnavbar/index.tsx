@@ -114,12 +114,27 @@ function MainNavbar() {
     useEffect(() => {
         const fetchNotifications = async () => {
             setLoading(true);
-            const data = await getNotifyForUser(id, user?.role, axiosJWT);
-            const unread = data?.filter((notif: any) => !notif.readBy.includes(id)).length;
-            setUnreadCount(unread);
-            setNotifications(data);
-            setLoading(false);
+            try {
+                const data = await getNotifyForUser(id, user?.role, axiosJWT);
+
+                if (Array.isArray(data)) {
+                    const unread = data.filter((notif: any) => !notif.readBy.includes(id)).length;
+                    setUnreadCount(unread);
+                    setNotifications(data);
+                } else {
+                    console.error('API returned non-array data:', data);
+                    setUnreadCount(0);
+                    setNotifications([]);
+                }
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+                setUnreadCount(0);
+                setNotifications([]);
+            } finally {
+                setLoading(false);
+            }
         };
+
         fetchNotifications();
     }, []);
     // Handlers

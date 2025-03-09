@@ -131,17 +131,21 @@ export default function Myteacher({ params }: UserProps) {
                                     />
                                 </Link>
                                 <div className="flex-1 flex flex-col gap-3 p-4 px-5">
-                                    <h3 className="text-[18px] font-semibold">{course.name}</h3>
+                                    <h3 className="text-[18px] font-semibold min-h-[54px]">{course.name}</h3>
                                     <div className="flex items-center gap-2 mb-4">
-                                        <span className="text-[16px] font-semibold text-[#f05123]">Miễn phí</span>
+                                        <span className="text-[16px] font-semibold text-[#f05123]">
+                                            {course.price != 'Miễn phí'
+                                                ? `${Number(course.price).toLocaleString('vi-VN')}đ`
+                                                : 'Miễn phí'}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between mt-auto">
                                         <div className="flex items-center gap-1.5 text-gray-600 text-[14px]">
                                             <FontAwesomeIcon icon={faUserGroup} />
                                             <span>{course.registrations}</span>
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-gray-600 text-[14px]">
-                                            <FontAwesomeIcon icon={faCirclePlay} />
+                                        <div className="flex items-center gap-1.5  text-[14px] text-[#1261a6] font-medium">
+                                            Xem ngay
                                         </div>
                                         <div className="flex items-center gap-1.5 text-gray-600 text-[14px]">
                                             <span>5</span>

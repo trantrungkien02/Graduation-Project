@@ -1,10 +1,10 @@
 'use client';
 import React, { useEffect } from 'react';
-import { Button, Form, Input, Select, Tabs } from 'antd';
+import { Button, Form, Input, message, Select, Tabs } from 'antd';
 import { useRouter } from 'next/navigation';
 import { toast, ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { createNotify, getAllUsers, registerCourse } from '~/redux/stateglobal/apiRequest';
+import { createNotify, getAllUsers, getNotifyForAdmin, registerCourse } from '~/redux/stateglobal/apiRequest';
 import { useDispatch, useSelector } from 'react-redux';
 import './index.scss';
 import axios from 'axios';
@@ -14,6 +14,7 @@ import NotifyList from './NotifyListById';
 import BannerList from './BannerList';
 import CoursePrivateList from './CoursePrivateList';
 import Charts from '../Statistical';
+import PaymentList from './PaymentList';
 function ManageSystem() {
     const [form] = Form.useForm();
     const router = useRouter();
@@ -45,32 +46,14 @@ function ManageSystem() {
             console.log(response);
 
             if (typeof response === 'object') {
-                toast.success('Thông báo đã được thêm thành công!', {
-                    position: 'bottom-right',
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: 'success',
-                    transition: Bounce,
-                });
-                setTimeout(() => {
-                    router.push('/');
-                }, 5000);
+                form.resetFields();
+                message.success('Thông báo đã được thêm thành công!');
+                await getNotifyForAdmin(user._id, axiosJWT);
+                // setTimeout(() => {
+                //     router.push('/');
+                // }, 5000);
             } else if (typeof response === 'string') {
-                toast.error('Thông báo đã tồn tại!', {
-                    position: 'bottom-right',
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: 'light',
-                    transition: Bounce,
-                });
+                message.success('Thông báo đã tồn tại');
             }
         } catch (error) {
             console.error('Error adding course:', error);
@@ -706,7 +689,10 @@ function ManageSystem() {
                 <Tabs.TabPane tab={<div>Quản lý banner</div>} key="4">
                     <BannerList />
                 </Tabs.TabPane>
-                <Tabs.TabPane tab={<div>Thống kê</div>} key="5">
+                <Tabs.TabPane tab={<div>Quản lý thanh toán</div>} key="5">
+                    <PaymentList />
+                </Tabs.TabPane>
+                <Tabs.TabPane tab={<div>Thống kê</div>} key="6">
                     <Charts data={courseList} />
                 </Tabs.TabPane>
             </Tabs>

@@ -463,8 +463,21 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                             </Modal>
                         </div>
                     ) : course.price === 'Miễn phí' ? (
-                        <button className="register-button" onClick={() => handleCourseClick(course.slug, course._id)}>
-                            Đăng ký học
+                        course.userId === user._id ? (
+                            <button className="register-button" onClick={() => router.push(`/learning/${course.slug}`)}>
+                                Xem ngay
+                            </button>
+                        ) : (
+                            <button
+                                className="register-button"
+                                onClick={() => handleCourseClick(course.slug, course._id)}
+                            >
+                                Đăng ký học
+                            </button>
+                        )
+                    ) : course.userId === user._id ? (
+                        <button className="register-button" onClick={() => router.push(`/learning/${course.slug}`)}>
+                            Xem ngay
                         </button>
                     ) : (
                         <button className="register-button" onClick={() => handleBuyCourseClick(course)}>

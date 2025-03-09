@@ -6,7 +6,7 @@ import { icons } from '~/assets/images/icons/icons';
 
 function Footer() {
     return (
-        <div className="footer relative overflow-hidden xl:mt-10 xxl:mt-12">
+        <div className="footer relative overflow-hidden mt-[100px]">
             <svg
                 width="100%"
                 height="100%"

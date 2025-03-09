@@ -64,8 +64,8 @@ const CourseList = () => {
                 await getAllCoursesPublic(dispatch, axiosJWT);
 
                 // Fetch lessons for each course and count
-                const lessonsData = await Promise.all(
-                    courseList.map(async (course: any) => {
+                const lessonsData = await Promise?.all(
+                    courseList?.map(async (course: any) => {
                         const lessons = await getLessonBycourseId(user.accessToken, course._id, dispatch, axiosJWT);
                         return {
                             courseId: course._id,
@@ -123,7 +123,7 @@ const CourseList = () => {
                             <>
                                 <LeftOutlined className="left-btn" onClick={() => sliderRef.current?.slickPrev()} />
                                 <Slider ref={sliderRef} {...settings}>
-                                    {banners.map((banner) => (
+                                    {banners?.map((banner) => (
                                         <div className="!flex !items-center !justify-between bg-gradient-to-r from-[#626466] to-[#d6dcf1] rounded-lg p-8 h-[368px]">
                                             <div className="text-white max-w-lg flex flex-col">
                                                 <h1 className="text-4xl font-bold mb-4 text-white">{banner?.title}</h1>
@@ -200,7 +200,9 @@ const CourseList = () => {
                                         <h3 className="text-[18px] font-semibold min-h-[54px]">{course.name}</h3>
                                         <div className="flex items-center gap-2 mb-4">
                                             <span className="text-[16px] font-semibold text-[#f05123]">
-                                                {course.price != 'Miễn phí' ? `${course.price} đ` : 'Miễn phí'}
+                                                {course.price != 'Miễn phí'
+                                                    ? `${Number(course.price).toLocaleString('vi-VN')}đ`
+                                                    : 'Miễn phí'}
                                             </span>
                                         </div>
                                         <div className="flex justify-between mt-auto">
